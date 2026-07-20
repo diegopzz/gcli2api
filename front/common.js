@@ -1,47 +1,47 @@
 // =====================================================================
-// GCLI2API 控制面板公共JavaScript模块
+// Módulo JavaScript común del panel de control GCLI2API
 // =====================================================================
 
 // =====================================================================
-// 全局状态管理
+// Gestión de estado global
 // =====================================================================
 const AppState = {
-    // 认证相关
+    // Autenticación
     authToken: '',
     authInProgress: false,
     currentProjectId: '',
 
-    // Antigravity认证
+    // Autenticación de Antigravity
     antigravityAuthState: null,
     antigravityAuthInProgress: false,
 
-    // 凭证管理
+    // Gestión de credenciales
     creds: createCredsManager('normal'),
     antigravityCreds: createCredsManager('antigravity'),
 
-    // 文件上传
+    // Subida de archivos
     uploadFiles: createUploadManager('normal'),
     antigravityUploadFiles: createUploadManager('antigravity'),
 
-    // 配置管理
+    // Gestión de la configuración
     currentConfig: {},
     envLockedFields: new Set(),
 
-    // 日志管理
+    // Gestión de registros
     logWebSocket: null,
     allLogs: [],
     filteredLogs: [],
     currentLogFilter: 'all',
 
-    // 使用统计
+    // Estadísticas de uso
     usageStatsData: {},
 
-    // 冷却倒计时
+    // Cuenta atrás de enfriamiento
     cooldownTimerInterval: null
 };
 
 // =====================================================================
-// 凭证管理器工厂
+// Fábrica del gestor de credenciales
 // =====================================================================
 function createCredsManager(type) {
     const modeParam = type === 'antigravity' ? 'mode=antigravity' : 'mode=geminicli';
@@ -61,7 +61,7 @@ function createCredsManager(type) {
         currentTierFilter: 'all',
         statsData: { total: 0, normal: 0, disabled: 0 },
 
-        // API端点
+        // Endpoints de la API
         getEndpoint: (action) => {
             const endpoints = {
                 status: `./creds/status`,
@@ -79,20 +79,20 @@ function createCredsManager(type) {
             return endpoints[action] || '';
         },
 
-        // 获取mode参数
+        // Obtener el parámetro mode
         getModeParam: () => modeParam,
 
-        // DOM元素ID前缀
+        // Prefijo de ID de los elementos del DOM
         getElementId: (suffix) => {
-            // 普通凭证的ID首字母小写,如 credsLoading
-            // Antigravity的ID是 antigravity + 首字母大写,如 antigravityCredsLoading
+            // El ID de las credenciales normales empieza en minúscula, p. ej. credsLoading
+            // El ID de Antigravity es antigravity + inicial en mayúscula, p. ej. antigravityCredsLoading
             if (type === 'antigravity') {
                 return 'antigravity' + suffix.charAt(0).toUpperCase() + suffix.slice(1);
             }
             return suffix.charAt(0).toLowerCase() + suffix.slice(1);
         },
 
-        // 刷新凭证列表
+        // Actualizar la lista de credenciales
         async refresh() {
             const loading = document.getElementById(this.getElementId('CredsLoading'));
             const list = document.getElementById(this.getElementId('CredsList'));
@@ -132,11 +132,11 @@ function createCredsManager(type) {
                     });
 
                     this.totalCount = data.total;
-                    // 使用后端返回的全局统计数据
+                    // Usar las estadísticas globales devueltas por el backend
                     if (data.stats) {
                         this.statsData = data.stats;
                     } else {
-                        // 兼容旧版本后端
+                        // Compatibilidad con versiones antiguas del backend
                         this.calculateStats();
                     }
                     this.updateStatsDisplay();
@@ -144,22 +144,22 @@ function createCredsManager(type) {
                     this.renderList();
                     this.updatePagination();
 
-                    let msg = `已加载 ${data.total} 个${type === 'antigravity' ? 'Antigravity' : ''}凭证文件`;
+                    let msg = `Se han cargado ${data.total} archivos de credenciales${type === 'antigravity' ? ' Antigravity' : ''}`;
                     if (this.currentStatusFilter !== 'all') {
-                        msg += ` (筛选: ${this.currentStatusFilter === 'enabled' ? '仅启用' : '仅禁用'})`;
+                        msg += ` (filtro: ${this.currentStatusFilter === 'enabled' ? 'solo habilitadas' : 'solo deshabilitadas'})`;
                     }
                     showStatus(msg, 'success');
                 } else {
-                    showStatus(`加载失败: ${data.detail || data.error || '未知错误'}`, 'error');
+                    showStatus(`Error al cargar: ${data.detail || data.error || 'Error desconocido'}`, 'error');
                 }
             } catch (error) {
-                showStatus(`网络错误: ${error.message}`, 'error');
+                showStatus(`Error de red: ${error.message}`, 'error');
             } finally {
                 loading.style.display = 'none';
             }
         },
 
-        // 计算统计数据（仅用于兼容旧版本后端）
+        // Calcular las estadísticas (solo por compatibilidad con versiones antiguas del backend)
         calculateStats() {
             this.statsData = { total: this.totalCount, normal: 0, disabled: 0 };
             Object.values(this.data).forEach(credInfo => {
@@ -171,14 +171,14 @@ function createCredsManager(type) {
             });
         },
 
-        // 更新统计显示
+        // Actualizar la visualización de estadísticas
         updateStatsDisplay() {
             document.getElementById(this.getElementId('StatTotal')).textContent = this.statsData.total;
             document.getElementById(this.getElementId('StatNormal')).textContent = this.statsData.normal;
             document.getElementById(this.getElementId('StatDisabled')).textContent = this.statsData.disabled;
         },
 
-        // 渲染凭证列表
+        // Renderizar la lista de credenciales
         renderList() {
             const list = document.getElementById(this.getElementId('CredsList'));
             list.innerHTML = '';
@@ -186,7 +186,7 @@ function createCredsManager(type) {
             const entries = Object.entries(this.filteredData);
 
             if (entries.length === 0) {
-                const msg = this.totalCount === 0 ? '暂无凭证文件' : '当前筛选条件下暂无数据';
+                const msg = this.totalCount === 0 ? 'No hay archivos de credenciales' : 'No hay datos con los filtros actuales';
                 list.innerHTML = `<p style="text-align: center; color: #666;">${msg}</p>`;
                 document.getElementById(this.getElementId('PaginationContainer')).style.display = 'none';
                 return;
@@ -201,25 +201,25 @@ function createCredsManager(type) {
             this.updateBatchControls();
         },
 
-        // 获取总页数
+        // Obtener el número total de páginas
         getTotalPages() {
             return Math.ceil(this.totalCount / this.pageSize);
         },
 
-        // 更新分页信息
+        // Actualizar la información de paginación
         updatePagination() {
             const totalPages = this.getTotalPages();
             const startItem = (this.currentPage - 1) * this.pageSize + 1;
             const endItem = Math.min(this.currentPage * this.pageSize, this.totalCount);
 
             document.getElementById(this.getElementId('PaginationInfo')).textContent =
-                `第 ${this.currentPage} 页，共 ${totalPages} 页 (显示 ${startItem}-${endItem}，共 ${this.totalCount} 项)`;
+                `Página ${this.currentPage} de ${totalPages} (mostrando ${startItem}-${endItem} de ${this.totalCount} elementos)`;
 
             document.getElementById(this.getElementId('PrevPageBtn')).disabled = this.currentPage <= 1;
             document.getElementById(this.getElementId('NextPageBtn')).disabled = this.currentPage >= totalPages;
         },
 
-        // 切换页面
+        // Cambiar de página
         changePage(direction) {
             const newPage = this.currentPage + direction;
             if (newPage >= 1 && newPage <= this.getTotalPages()) {
@@ -228,14 +228,14 @@ function createCredsManager(type) {
             }
         },
 
-        // 改变每页大小
+        // Cambiar el tamaño de página
         changePageSize() {
             this.pageSize = parseInt(document.getElementById(this.getElementId('PageSizeSelect')).value);
             this.currentPage = 1;
             this.refresh();
         },
 
-        // 应用状态筛选
+        // Aplicar el filtro de estado
         applyStatusFilter() {
             this.currentStatusFilter = document.getElementById(this.getElementId('StatusFilter')).value;
             const errorCodeFilterEl = document.getElementById(this.getElementId('ErrorCodeFilter'));
@@ -250,10 +250,10 @@ function createCredsManager(type) {
             this.refresh();
         },
 
-        // 更新批量控件
+        // Actualizar los controles por lotes
         updateBatchControls() {
             const selectedCount = this.selectedFiles.size;
-            document.getElementById(this.getElementId('SelectedCount')).textContent = `已选择 ${selectedCount} 项`;
+            document.getElementById(this.getElementId('SelectedCount')).textContent = `${selectedCount} seleccionados`;
 
             const batchBtnNames = ['Enable', 'Disable', 'Delete', 'Verify', 'Preview'];
             if (this.type === 'antigravity') {
@@ -287,7 +287,7 @@ function createCredsManager(type) {
             });
         },
 
-        // 凭证操作
+        // Acciones sobre credenciales
         async action(filename, action) {
             try {
                 const response = await fetch(`${this.getEndpoint('action')}?${this.getModeParam()}`, {
@@ -299,41 +299,41 @@ function createCredsManager(type) {
                 const data = await response.json();
 
                 if (response.ok) {
-                    showStatus(data.message || `操作成功: ${action}`, 'success');
+                    showStatus(data.message || `Operación correcta: ${action}`, 'success');
                     await this.refresh();
                 } else {
-                    showStatus(`操作失败: ${data.detail || data.error || '未知错误'}`, 'error');
+                    showStatus(`Error en la operación: ${data.detail || data.error || 'Error desconocido'}`, 'error');
                 }
             } catch (error) {
-                showStatus(`网络错误: ${error.message}`, 'error');
+                showStatus(`Error de red: ${error.message}`, 'error');
             }
         },
 
-        // 批量操作
+        // Operaciones por lotes
         async batchAction(action) {
             const selectedFiles = Array.from(this.selectedFiles);
 
             if (selectedFiles.length === 0) {
-                showStatus('请先选择要操作的文件', 'error');
+                showStatus('Selecciona primero los archivos sobre los que quieres operar', 'error');
                 return;
             }
 
             const actionNames = {
-                enable: '启用',
-                disable: '禁用',
-                delete: '删除',
-                enable_credit: '开启积分',
-                disable_credit: '关闭积分'
+                enable: 'Habilitar',
+                disable: 'Deshabilitar',
+                delete: 'Eliminar',
+                enable_credit: 'Activar créditos',
+                disable_credit: 'Desactivar créditos'
             };
             const actionLabel = actionNames[action] || action;
             const confirmMsg = action === 'delete'
-                ? `确定要删除选中的 ${selectedFiles.length} 个文件吗？\n注意：此操作不可恢复！`
-                : `确定要${actionLabel}选中的 ${selectedFiles.length} 个文件吗？`;
+                ? `¿Seguro que quieres eliminar los ${selectedFiles.length} archivos seleccionados?\nAtención: esta operación no se puede deshacer.`
+                : `¿Seguro que quieres aplicar "${actionLabel}" a los ${selectedFiles.length} archivos seleccionados?`;
 
             if (!confirm(confirmMsg)) return;
 
             try {
-                showStatus(`正在执行批量${actionLabel}操作...`, 'info');
+                showStatus(`Ejecutando la operación por lotes "${actionLabel}"...`, 'info');
 
                 const response = await fetch(`${this.getEndpoint('batchAction')}?${this.getModeParam()}`, {
                     method: 'POST',
@@ -345,22 +345,22 @@ function createCredsManager(type) {
 
                 if (response.ok) {
                     const successCount = data.success_count || data.succeeded;
-                    showStatus(`批量操作完成：成功处理 ${successCount}/${selectedFiles.length} 个文件`, 'success');
+                    showStatus(`Operación por lotes completada: ${successCount}/${selectedFiles.length} archivos procesados correctamente`, 'success');
                     this.selectedFiles.clear();
                     this.updateBatchControls();
                     await this.refresh();
                 } else {
-                    showStatus(`批量操作失败: ${data.detail || data.error || '未知错误'}`, 'error');
+                    showStatus(`Error en la operación por lotes: ${data.detail || data.error || 'Error desconocido'}`, 'error');
                 }
             } catch (error) {
-                showStatus(`批量操作网络错误: ${error.message}`, 'error');
+                showStatus(`Error de red en la operación por lotes: ${error.message}`, 'error');
             }
         }
     };
 }
 
 // =====================================================================
-// 文件上传管理器工厂
+// Fábrica del gestor de subida de archivos
 // =====================================================================
 function createUploadManager(type) {
     const modeParam = type === 'antigravity' ? 'mode=antigravity' : 'mode=geminicli';
@@ -371,8 +371,8 @@ function createUploadManager(type) {
         selectedFiles: [],
 
         getElementId: (suffix) => {
-            // 普通上传的ID首字母小写,如 fileList
-            // Antigravity的ID是 antigravity + 首字母大写,如 antigravityFileList
+            // El ID de las subidas normales empieza en minúscula, p. ej. fileList
+            // El ID de Antigravity es antigravity + inicial en mayúscula, p. ej. antigravityFileList
             if (type === 'antigravity') {
                 return 'antigravity' + suffix.charAt(0).toUpperCase() + suffix.slice(1);
             }
@@ -393,7 +393,7 @@ function createUploadManager(type) {
                         this.selectedFiles.push(file);
                     }
                 } else {
-                    showStatus(`文件 ${file.name} 格式不支持，只支持JSON和ZIP文件`, 'error');
+                    showStatus(`El formato del archivo ${file.name} no es compatible; solo se admiten archivos JSON y ZIP`, 'error');
                 }
             });
             this.updateFileList();
@@ -419,7 +419,7 @@ function createUploadManager(type) {
             this.selectedFiles.forEach((file, index) => {
                 const isZip = file.name.endsWith('.zip');
                 const fileIcon = isZip ? '📦' : '📄';
-                const fileType = isZip ? ' (ZIP压缩包)' : ' (JSON文件)';
+                const fileType = isZip ? ' (archivo ZIP)' : ' (archivo JSON)';
 
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-item';
@@ -428,7 +428,7 @@ function createUploadManager(type) {
                         <span class="file-name">${fileIcon} ${file.name}</span>
                         <span class="file-size">(${formatFileSize(file.size)}${fileType})</span>
                     </div>
-                    <button class="remove-btn" onclick="${type === 'antigravity' ? 'removeAntigravityFile' : 'removeFile'}(${index})">删除</button>
+                    <button class="remove-btn" onclick="${type === 'antigravity' ? 'removeAntigravityFile' : 'removeFile'}(${index})">Eliminar</button>
                 `;
                 list.appendChild(fileItem);
             });
@@ -446,7 +446,7 @@ function createUploadManager(type) {
 
         async upload() {
             if (this.selectedFiles.length === 0) {
-                showStatus('请选择要上传的文件', 'error');
+                showStatus('Selecciona los archivos que quieres subir', 'error');
                 return;
             }
 
@@ -460,12 +460,12 @@ function createUploadManager(type) {
             this.selectedFiles.forEach(file => formData.append('files', file));
 
             if (this.selectedFiles.some(f => f.name.endsWith('.zip'))) {
-                showStatus('正在上传并解压ZIP文件...', 'info');
+                showStatus('Subiendo y descomprimiendo el archivo ZIP...', 'info');
             }
 
             try {
                 const xhr = new XMLHttpRequest();
-                xhr.timeout = 300000; // 5分钟
+                xhr.timeout = 300000; // 5 minutos
 
                 xhr.upload.onprogress = (event) => {
                     if (event.lengthComputable) {
@@ -479,29 +479,29 @@ function createUploadManager(type) {
                     if (xhr.status === 200) {
                         try {
                             const data = JSON.parse(xhr.responseText);
-                            showStatus(`成功上传 ${data.uploaded_count} 个${type === 'antigravity' ? 'Antigravity' : ''}文件`, 'success');
+                            showStatus(`Se han subido ${data.uploaded_count} archivos${type === 'antigravity' ? ' Antigravity' : ''} correctamente`, 'success');
                             this.clearFiles();
                             progressSection.classList.add('hidden');
                         } catch (e) {
-                            showStatus('上传失败: 服务器响应格式错误', 'error');
+                            showStatus('Error al subir: formato de respuesta del servidor incorrecto', 'error');
                         }
                     } else {
                         try {
                             const error = JSON.parse(xhr.responseText);
-                            showStatus(`上传失败: ${error.detail || error.error || '未知错误'}`, 'error');
+                            showStatus(`Error al subir: ${error.detail || error.error || 'Error desconocido'}`, 'error');
                         } catch (e) {
-                            showStatus(`上传失败: HTTP ${xhr.status}`, 'error');
+                            showStatus(`Error al subir: HTTP ${xhr.status}`, 'error');
                         }
                     }
                 };
 
                 xhr.onerror = () => {
-                    showStatus(`上传失败：连接中断 - 可能原因：文件过多(${this.selectedFiles.length}个)或网络不稳定。建议分批上传。`, 'error');
+                    showStatus(`Error al subir: conexión interrumpida. Posibles causas: demasiados archivos (${this.selectedFiles.length}) o red inestable. Se recomienda subirlos por lotes.`, 'error');
                     progressSection.classList.add('hidden');
                 };
 
                 xhr.ontimeout = () => {
-                    showStatus('上传失败：请求超时 - 文件处理时间过长，请减少文件数量或检查网络连接', 'error');
+                    showStatus('Error al subir: tiempo de espera agotado. El procesamiento ha tardado demasiado; reduce el número de archivos o comprueba la conexión de red', 'error');
                     progressSection.classList.add('hidden');
                 };
 
@@ -509,64 +509,64 @@ function createUploadManager(type) {
                 xhr.setRequestHeader('Authorization', `Bearer ${AppState.authToken}`);
                 xhr.send(formData);
             } catch (error) {
-                showStatus(`上传失败: ${error.message}`, 'error');
+                showStatus(`Error al subir: ${error.message}`, 'error');
             }
         }
     };
 }
 
 // =====================================================================
-// 工具函数
+// Funciones auxiliares
 // =====================================================================
 function showStatus(message, type = 'info') {
     const statusSection = document.getElementById('statusSection');
     if (statusSection) {
-        // 清除之前的定时器
+        // Limpiar el temporizador anterior
         if (window._statusTimeout) {
             clearTimeout(window._statusTimeout);
         }
 
-        // 创建新的 toast
+        // Crear el nuevo toast
         statusSection.innerHTML = `<div class="status ${type}">${message}</div>`;
         const statusDiv = statusSection.querySelector('.status');
 
-        // 强制重绘以触发动画
+        // Forzar el repintado para lanzar la animación
         statusDiv.offsetHeight;
         statusDiv.classList.add('show');
 
-        // 3秒后淡出并移除
+        // Desvanecer y eliminar tras 3 segundos
         window._statusTimeout = setTimeout(() => {
             statusDiv.classList.add('fade-out');
             setTimeout(() => {
                 statusSection.innerHTML = '';
-            }, 300); // 等待淡出动画完成
+            }, 300); // Esperar a que termine la animación de desvanecido
         }, 3000);
     } else {
-        showMessageModal('提示', message, 'info');
+        showMessageModal('Aviso', message, 'info');
     }
 }
 
-// 将文本中的链接转换为可点击的HTML链接
+// Convierte los enlaces del texto en enlaces HTML clicables
 function linkifyText(text) {
     if (!text) return text;
 
-    // 匹配 http://, https:// 和 www. 开头的链接，排除常见的标点符号
+    // Coincide con enlaces que empiezan por http://, https:// y www., excluyendo la puntuación habitual
     const urlPattern = /(https?:\/\/[^\s"'<>()[\]{}]+)|(www\.[^\s"'<>()[\]{}]+)/gi;
 
     return text.replace(urlPattern, function(url) {
         let href = url;
-        // 如果是 www. 开头，添加 https://
+        // Si empieza por www., añadir https://
         if (url.startsWith('www.')) {
             href = 'https://' + url;
         }
 
-        return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="message-link" onclick="event.stopPropagation()" title="点击打开链接\n右键复制链接">${url}</a>`;
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="message-link" onclick="event.stopPropagation()" title="Clic para abrir el enlace\nClic derecho para copiar el enlace">${url}</a>`;
     });
 }
 
-// 显示增强的消息模态框（支持链接高亮）
+// Muestra un modal de mensaje mejorado (con resaltado de enlaces)
 function showMessageModal(title, message, type = 'info') {
-    // 创建模态框
+    // Crear el modal
     const modal = document.createElement('div');
     modal.className = 'message-modal-overlay';
     modal.innerHTML = `
@@ -579,22 +579,22 @@ function showMessageModal(title, message, type = 'info') {
                 ${linkifyText(message).replace(/\n/g, '<br>')}
             </div>
             <div class="message-modal-footer">
-                <button class="message-modal-btn" onclick="this.closest('.message-modal-overlay').remove()">关闭</button>
+                <button class="message-modal-btn" onclick="this.closest('.message-modal-overlay').remove()">Cerrar</button>
             </div>
         </div>
     `;
 
-    // 添加到页面
+    // Añadir a la página
     document.body.appendChild(modal);
 
-    // 点击遮罩层关闭
+    // Cerrar al hacer clic en el fondo
     modal.addEventListener('click', function(e) {
         if (e.target === modal) {
             modal.remove();
         }
     });
 
-    // ESC 键关闭
+    // Cerrar con la tecla ESC
     const escHandler = function(e) {
         if (e.key === 'Escape') {
             modal.remove();
@@ -628,57 +628,57 @@ function formatCooldownTime(remainingSeconds) {
 }
 
 // =====================================================================
-// 凭证卡片创建（通用）
+// Creación de tarjetas de credencial (común)
 // =====================================================================
 function createCredCard(credInfo, manager) {
     const div = document.createElement('div');
     const { status, filename } = credInfo;
     const managerType = manager.type;
 
-    // 卡片样式
+    // Estilo de la tarjeta
     div.className = status.disabled ? 'cred-card disabled' : 'cred-card';
 
-    // 状态徽章
+    // Insignias de estado
     let statusBadges = '';
     statusBadges += status.disabled
-        ? '<span class="status-badge disabled">已禁用</span>'
-        : '<span class="status-badge enabled">已启用</span>';
+        ? '<span class="status-badge disabled">Deshabilitada</span>'
+        : '<span class="status-badge enabled">Habilitada</span>';
 
     if (status.error_codes && status.error_codes.length > 0) {
-        statusBadges += `<span class="error-codes">错误码: ${status.error_codes.join(', ')}</span>`;
+        statusBadges += `<span class="error-codes">Códigos de error: ${status.error_codes.join(', ')}</span>`;
         const autoBan = status.error_codes.filter(c => c === 400 || c === 403);
         if (autoBan.length > 0 && status.disabled) {
             statusBadges += '<span class="status-badge" style="background-color: #e74c3c; color: white;">AUTO_BAN</span>';
         }
     } else {
-        statusBadges += '<span class="status-badge" style="background-color: #28a745; color: white;">无错误</span>';
+        statusBadges += '<span class="status-badge" style="background-color: #28a745; color: white;">Sin errores</span>';
     }
 
-    // Preview状态显示 (仅对geminicli模式显示)
+    // Estado de Preview (solo en modo geminicli)
     if (managerType !== 'antigravity' && credInfo.preview !== undefined) {
         if (credInfo.preview) {
-            statusBadges += '<span class="status-badge" style="background-color: #28a745; color: white;" title="该凭证支持Preview模型">Preview: ON</span>';
+            statusBadges += '<span class="status-badge" style="background-color: #28a745; color: white;" title="Esta credencial admite modelos Preview">Preview: ON</span>';
         } else {
-            statusBadges += '<span class="status-badge" style="background-color: #8aa5a2; color: white;" title="该凭证不支持Preview模型">Preview: OFF</span>';
+            statusBadges += '<span class="status-badge" style="background-color: #8aa5a2; color: white;" title="Esta credencial no admite modelos Preview">Preview: OFF</span>';
         }
     }
 
-    // tier 状态显示 (geminicli 和 antigravity 都显示)
+    // Estado de tier (se muestra tanto en geminicli como en antigravity)
     const tier = (credInfo.tier || 'pro').toString().toLowerCase();
     const tierLabel = tier.toUpperCase();
     const tierColor = tier === 'ultra' ? '#ff9800' : (tier === 'free' ? '#607d8b' : '#2e7d32');
-    statusBadges += `<span class="status-badge" style="background-color: ${tierColor}; color: white;" title="凭证等级: ${tierLabel}">Tier: ${tierLabel}</span>`;
+    statusBadges += `<span class="status-badge" style="background-color: ${tierColor}; color: white;" title="Nivel de la credencial: ${tierLabel}">Tier: ${tierLabel}</span>`;
 
-    // Credit 状态显示（仅 antigravity）
+    // Estado de Credit (solo antigravity)
     if (managerType === 'antigravity') {
         if (credInfo.enable_credit) {
-            statusBadges += '<span class="status-badge" style="background-color: #2e7d32; color: white;" title="当前已开启Credit模式">Credit: ON</span>';
+            statusBadges += '<span class="status-badge" style="background-color: #2e7d32; color: white;" title="Modo Credit activado">Credit: ON</span>';
         } else {
-            statusBadges += '<span class="status-badge" style="background-color: #616161; color: white;" title="当前已关闭Credit模式">Credit: OFF</span>';
+            statusBadges += '<span class="status-badge" style="background-color: #616161; color: white;" title="Modo Credit desactivado">Credit: OFF</span>';
         }
     }
 
-    // 模型级冷却状态
+    // Estado de enfriamiento por modelo
     if (credInfo.model_cooldowns && Object.keys(credInfo.model_cooldowns).length > 0) {
         const currentTime = Date.now() / 1000;
         const activeCooldowns = Object.entries(credInfo.model_cooldowns)
@@ -696,44 +696,44 @@ function createCredCard(credInfo, manager) {
 
         if (activeCooldowns.length > 0) {
             activeCooldowns.slice(0, 2).forEach(item => {
-                statusBadges += `<span class="cooldown-badge" style="background-color: #17a2b8;" title="模型: ${item.fullModel}">⏰ ${item.model}: ${item.time}</span>`;
+                statusBadges += `<span class="cooldown-badge" style="background-color: #17a2b8;" title="Modelo: ${item.fullModel}">⏰ ${item.model}: ${item.time}</span>`;
             });
             if (activeCooldowns.length > 2) {
                 const remaining = activeCooldowns.length - 2;
                 const remainingModels = activeCooldowns.slice(2).map(i => `${i.fullModel}: ${i.time}`).join('\n');
-                statusBadges += `<span class="cooldown-badge" style="background-color: #17a2b8;" title="其他模型:\n${remainingModels}">+${remaining}</span>`;
+                statusBadges += `<span class="cooldown-badge" style="background-color: #17a2b8;" title="Otros modelos:\n${remainingModels}">+${remaining}</span>`;
             }
         }
     }
 
-    // 路径ID
+    // ID de ruta
     const pathId = (managerType === 'antigravity' ? 'ag_' : '') + btoa(encodeURIComponent(filename)).replace(/[+/=]/g, '_');
 
-    // 操作按钮
+    // Botones de acción
     const actionButtons = `
         ${status.disabled
-            ? `<button class="cred-btn enable" data-filename="${filename}" data-action="enable">启用</button>`
-            : `<button class="cred-btn disable" data-filename="${filename}" data-action="disable">禁用</button>`
+            ? `<button class="cred-btn enable" data-filename="${filename}" data-action="enable">Habilitar</button>`
+            : `<button class="cred-btn disable" data-filename="${filename}" data-action="disable">Deshabilitar</button>`
         }
-        <button class="cred-btn view" onclick="toggle${managerType === 'antigravity' ? 'Antigravity' : ''}CredDetails('${pathId}')">查看内容</button>
-        <button class="cred-btn download" onclick="download${managerType === 'antigravity' ? 'Antigravity' : ''}Cred('${filename}')">下载</button>
-        <button class="cred-btn email" onclick="fetch${managerType === 'antigravity' ? 'Antigravity' : ''}UserEmail('${filename}')">查看账号邮箱</button>
-        ${managerType === 'antigravity' ? `<button class="cred-btn" onclick="toggleAntigravityQuotaDetails('${pathId}')" title="查看该凭证的额度信息">查看额度</button>` : ''}
+        <button class="cred-btn view" onclick="toggle${managerType === 'antigravity' ? 'Antigravity' : ''}CredDetails('${pathId}')">Ver contenido</button>
+        <button class="cred-btn download" onclick="download${managerType === 'antigravity' ? 'Antigravity' : ''}Cred('${filename}')">Descargar</button>
+        <button class="cred-btn email" onclick="fetch${managerType === 'antigravity' ? 'Antigravity' : ''}UserEmail('${filename}')">Ver correo de la cuenta</button>
+        ${managerType === 'antigravity' ? `<button class="cred-btn" onclick="toggleAntigravityQuotaDetails('${pathId}')" title="Ver la información de cuota de esta credencial">Ver cuota</button>` : ''}
         ${managerType === 'antigravity' ? (credInfo.enable_credit
-            ? `<button class="cred-btn" data-filename="${filename}" data-action="disable_credit" title="关闭该凭证的Credit模式">关闭 Credit</button>`
-            : `<button class="cred-btn" data-filename="${filename}" data-action="enable_credit" title="开启该凭证的Credit模式">开启 Credit</button>`
+            ? `<button class="cred-btn" data-filename="${filename}" data-action="disable_credit" title="Desactivar el modo Credit de esta credencial">Desactivar Credit</button>`
+            : `<button class="cred-btn" data-filename="${filename}" data-action="enable_credit" title="Activar el modo Credit de esta credencial">Activar Credit</button>`
         ) : ''}
-        ${managerType !== 'antigravity' ? `<button class="cred-btn" onclick="configurePreviewChannel('${filename}')" title="配置Preview通道，启用实验性功能">设置预览</button>` : ''}
-        <button class="cred-btn" onclick="verify${managerType === 'antigravity' ? 'Antigravity' : ''}ProjectId('${filename}')" title="重新获取Project ID，可恢复403错误">检验</button>
-        <button class="cred-btn" onclick="test${managerType === 'antigravity' ? 'Antigravity' : ''}Credential('${filename}')" title="测试凭证是否可用">消息测试</button>
-        <button class="cred-btn" onclick="toggle${managerType === 'antigravity' ? 'Antigravity' : ''}ErrorDetails('${pathId}')" title="查看该凭证的详细报错信息">查看报错</button>
-        <button class="cred-btn delete" data-filename="${filename}" data-action="delete">删除</button>
+        ${managerType !== 'antigravity' ? `<button class="cred-btn" onclick="configurePreviewChannel('${filename}')" title="Configurar el canal Preview y activar las funciones experimentales">Configurar Preview</button>` : ''}
+        <button class="cred-btn" onclick="verify${managerType === 'antigravity' ? 'Antigravity' : ''}ProjectId('${filename}')" title="Volver a obtener el Project ID; puede recuperar errores 403">Verificar</button>
+        <button class="cred-btn" onclick="test${managerType === 'antigravity' ? 'Antigravity' : ''}Credential('${filename}')" title="Comprobar si la credencial funciona">Probar mensaje</button>
+        <button class="cred-btn" onclick="toggle${managerType === 'antigravity' ? 'Antigravity' : ''}ErrorDetails('${pathId}')" title="Ver la información detallada de errores de esta credencial">Ver errores</button>
+        <button class="cred-btn delete" data-filename="${filename}" data-action="delete">Eliminar</button>
     `;
 
-    // 邮箱信息
+    // Información del correo
     const emailInfo = credInfo.user_email
         ? `<div class="cred-email" style="font-size: 12px; color: #666; margin-top: 2px;">${credInfo.user_email}</div>`
-        : '<div class="cred-email" style="font-size: 12px; color: #999; margin-top: 2px; font-style: italic;">未获取邮箱</div>';
+        : '<div class="cred-email" style="font-size: 12px; color: #999; margin-top: 2px; font-style: italic;">Correo no obtenido</div>';
 
     const checkboxClass = manager.getElementId('file-checkbox');
 
@@ -750,27 +750,27 @@ function createCredCard(credInfo, manager) {
         </div>
         <div class="cred-actions">${actionButtons}</div>
         <div class="cred-details" id="details-${pathId}">
-            <div class="cred-content" data-filename="${filename}" data-loaded="false">点击"查看内容"按钮加载文件详情...</div>
+            <div class="cred-content" data-filename="${filename}" data-loaded="false">Pulsa el botón "Ver contenido" para cargar los detalles del archivo...</div>
         </div>
         <div class="cred-details" id="errors-${pathId}">
-            <div class="cred-content" data-filename="${filename}" data-loaded="false" style="background-color: #fff3cd; border-color: #ffc107;">点击"查看报错"按钮加载报错信息...</div>
+            <div class="cred-content" data-filename="${filename}" data-loaded="false" style="background-color: #fff3cd; border-color: #ffc107;">Pulsa el botón "Ver errores" para cargar la información de errores...</div>
         </div>
         ${managerType === 'antigravity' ? `
         <div class="cred-quota-details" id="quota-${pathId}" style="display: none;">
             <div class="cred-quota-content" data-filename="${filename}" data-loaded="false">
-                点击"查看额度"按钮加载额度信息...
+                Pulsa el botón "Ver cuota" para cargar la información de cuota...
             </div>
         </div>
         ` : ''}
     `;
 
-    // 添加事件监听
+    // Añadir los escuchadores de eventos
     div.querySelectorAll('[data-filename][data-action]').forEach(button => {
         button.addEventListener('click', function () {
             const fn = this.getAttribute('data-filename');
             const action = this.getAttribute('data-action');
             if (action === 'delete') {
-                if (confirm(`确定要删除${managerType === 'antigravity' ? ' Antigravity ' : ''}凭证文件吗？\n${fn}`)) {
+                if (confirm(`¿Seguro que quieres eliminar el archivo de credencial${managerType === 'antigravity' ? ' Antigravity' : ''}?\n${fn}`)) {
                     manager.action(fn, action);
                 }
             } else {
@@ -783,7 +783,7 @@ function createCredCard(credInfo, manager) {
 }
 
 // =====================================================================
-// 凭证详情切换
+// Alternar los detalles de la credencial
 // =====================================================================
 async function toggleCredDetails(pathId) {
     await toggleCredDetailsCommon(pathId, AppState.creds);
@@ -805,7 +805,7 @@ async function toggleCredDetailsCommon(pathId, manager) {
         const loaded = contentDiv.getAttribute('data-loaded');
 
         if (loaded === 'false' && filename) {
-            contentDiv.textContent = '正在加载文件内容...';
+            contentDiv.textContent = 'Cargando el contenido del archivo...';
 
             try {
                 const modeParam = manager.type === 'antigravity' ? 'mode=antigravity' : 'mode=geminicli';
@@ -818,23 +818,23 @@ async function toggleCredDetailsCommon(pathId, manager) {
                     contentDiv.textContent = JSON.stringify(data.content, null, 2);
                     contentDiv.setAttribute('data-loaded', 'true');
                 } else {
-                    contentDiv.textContent = '无法加载文件内容: ' + (data.error || data.detail || '未知错误');
+                    contentDiv.textContent = 'No se ha podido cargar el contenido del archivo: ' + (data.error || data.detail || 'Error desconocido');
                 }
             } catch (error) {
-                contentDiv.textContent = '加载文件内容失败: ' + error.message;
+                contentDiv.textContent = 'Error al cargar el contenido del archivo: ' + error.message;
             }
         }
     }
 }
 
 // =====================================================================
-// 登录相关函数
+// Funciones de inicio de sesión
 // =====================================================================
 async function login() {
     const password = document.getElementById('loginPassword').value;
 
     if (!password) {
-        showStatus('请输入密码', 'error');
+        showStatus('Introduce la contraseña', 'error');
         return;
     }
 
@@ -852,14 +852,14 @@ async function login() {
             localStorage.setItem('gcli2api_auth_token', AppState.authToken);
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('mainSection').classList.remove('hidden');
-            showStatus('登录成功', 'success');
-            // 显示面板后初始化滑块
+            showStatus('Sesión iniciada correctamente', 'success');
+            // Inicializar el deslizador tras mostrar el panel
             requestAnimationFrame(() => initTabSlider());
         } else {
-            showStatus(`登录失败: ${data.detail || data.error || '未知错误'}`, 'error');
+            showStatus(`Error al iniciar sesión: ${data.detail || data.error || 'Error desconocido'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     }
 }
 
@@ -880,8 +880,8 @@ async function autoLogin() {
         if (response.ok) {
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('mainSection').classList.remove('hidden');
-            showStatus('自动登录成功', 'success');
-            // 显示面板后初始化滑块
+            showStatus('Sesión iniciada automáticamente', 'success');
+            // Inicializar el deslizador tras mostrar el panel
             requestAnimationFrame(() => initTabSlider());
             return true;
         } else if (response.status === 401) {
@@ -900,7 +900,7 @@ function logout() {
     AppState.authToken = '';
     document.getElementById('loginSection').classList.remove('hidden');
     document.getElementById('mainSection').classList.add('hidden');
-    showStatus('已退出登录', 'info');
+    showStatus('Sesión cerrada', 'info');
     const passwordInput = document.getElementById('loginPassword');
     if (passwordInput) passwordInput.value = '';
 }
@@ -910,38 +910,38 @@ function handlePasswordEnter(event) {
 }
 
 // =====================================================================
-// 标签页切换
+// Cambio de pestañas
 // =====================================================================
 
-// 更新滑块位置
+// Actualizar la posición del deslizador
 function updateTabSlider(targetTab, animate = true) {
     const slider = document.querySelector('.tab-slider');
     const tabs = document.querySelector('.tabs');
     if (!slider || !tabs || !targetTab) return;
 
-    // 获取按钮位置和容器宽度
+    // Obtener la posición del botón y el ancho del contenedor
     const tabLeft = targetTab.offsetLeft;
     const tabWidth = targetTab.offsetWidth;
     const tabsWidth = tabs.scrollWidth;
 
-    // 使用 left 和 right 同时控制，确保动画同步
+    // Controlar left y right a la vez para sincronizar la animación
     const rightValue = tabsWidth - tabLeft - tabWidth;
 
     if (animate) {
         slider.style.left = `${tabLeft}px`;
         slider.style.right = `${rightValue}px`;
     } else {
-        // 首次加载时不使用动画
+        // Sin animación en la primera carga
         slider.style.transition = 'none';
         slider.style.left = `${tabLeft}px`;
         slider.style.right = `${rightValue}px`;
-        // 强制重绘后恢复过渡
+        // Restaurar la transición tras forzar el repintado
         slider.offsetHeight;
         slider.style.transition = '';
     }
 }
 
-// 初始化滑块位置
+// Inicializar la posición del deslizador
 function initTabSlider() {
     const activeTab = document.querySelector('.tab.active');
     if (activeTab) {
@@ -949,7 +949,7 @@ function initTabSlider() {
     }
 }
 
-// 页面加载和窗口大小变化时初始化滑块
+// Inicializar el deslizador al cargar la página y al redimensionar la ventana
 document.addEventListener('DOMContentLoaded', initTabSlider);
 window.addEventListener('resize', () => {
     const activeTab = document.querySelector('.tab.active');
@@ -957,30 +957,30 @@ window.addEventListener('resize', () => {
 });
 
 function switchTab(tabName) {
-    // 获取当前活动的内容区域
+    // Obtener el área de contenido activa
     const currentContent = document.querySelector('.tab-content.active');
     const targetContent = document.getElementById(tabName + 'Tab');
 
-    // 如果点击的是当前标签页，不做任何操作
+    // Si se pulsa la pestaña ya activa, no hacer nada
     if (currentContent === targetContent) return;
 
-    // 找到目标标签按钮
+    // Localizar el botón de la pestaña de destino
     const targetTab = event && event.target ? event.target :
         document.querySelector(`.tab[onclick*="'${tabName}'"]`);
 
-    // 移除所有标签页的active状态
+    // Quitar el estado active de todas las pestañas
     document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
 
-    // 添加当前点击标签的active状态
+    // Añadir el estado active a la pestaña pulsada
     if (targetTab) {
         targetTab.classList.add('active');
-        // 更新滑块位置（带动画）
+        // Actualizar la posición del deslizador (con animación)
         updateTabSlider(targetTab, true);
     }
 
-    // 淡出当前内容
+    // Desvanecer el contenido actual
     if (currentContent) {
-        // 设置淡出过渡
+        // Configurar la transición de salida
         currentContent.style.transition = 'opacity 0.18s ease-out, transform 0.18s ease-out';
         currentContent.style.opacity = '0';
         currentContent.style.transform = 'translateX(-12px)';
@@ -991,31 +991,31 @@ function switchTab(tabName) {
             currentContent.style.opacity = '';
             currentContent.style.transform = '';
 
-            // 淡入新内容
+            // Mostrar el nuevo contenido
             if (targetContent) {
-                // 先设置初始状态（在添加 active 类之前）
+                // Fijar el estado inicial (antes de añadir la clase active)
                 targetContent.style.opacity = '0';
                 targetContent.style.transform = 'translateX(12px)';
-                targetContent.style.transition = 'none'; // 暂时禁用过渡
+                targetContent.style.transition = 'none'; // Desactivar la transición temporalmente
 
-                // 添加 active 类使元素可见
+                // Añadir la clase active para hacer visible el elemento
                 targetContent.classList.add('active');
 
-                // 使用双重 requestAnimationFrame 确保浏览器完成重绘
+                // Doble requestAnimationFrame para asegurar que el navegador repinta
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        // 启用过渡并应用最终状态
+                        // Activar la transición y aplicar el estado final
                         targetContent.style.transition = 'opacity 0.25s ease-out, transform 0.25s ease-out';
                         targetContent.style.opacity = '1';
                         targetContent.style.transform = 'translateX(0)';
 
-                        // 清理内联样式并执行数据加载
+                        // Limpiar los estilos en línea y cargar los datos
                         setTimeout(() => {
                             targetContent.style.transition = '';
                             targetContent.style.opacity = '';
                             targetContent.style.transform = '';
 
-                            // 动画完成后触发数据加载
+                            // Lanzar la carga de datos al terminar la animación
                             triggerTabDataLoad(tabName);
                         }, 260);
                     });
@@ -1023,16 +1023,16 @@ function switchTab(tabName) {
             }
         }, 180);
     } else {
-        // 如果没有当前内容（首次加载），直接显示目标内容
+        // Si no hay contenido actual (primera carga), mostrar directamente el destino
         if (targetContent) {
             targetContent.classList.add('active');
-            // 直接触发数据加载
+            // Lanzar la carga de datos directamente
             triggerTabDataLoad(tabName);
         }
     }
 }
 
-// 标签页数据加载（从动画中分离出来）
+// Carga de datos de la pestaña (separada de la animación)
 function triggerTabDataLoad(tabName) {
     if (tabName === 'manage') AppState.creds.refresh();
     if (tabName === 'antigravity-manage') AppState.antigravityCreds.refresh();
@@ -1042,7 +1042,7 @@ function triggerTabDataLoad(tabName) {
 
 
 // =====================================================================
-// OAuth认证相关函数
+// Funciones de autenticación OAuth
 // =====================================================================
 async function startAuth() {
     const projectId = document.getElementById('projectId').value.trim();
@@ -1050,11 +1050,11 @@ async function startAuth() {
 
     const btn = document.getElementById('getAuthBtn');
     btn.disabled = true;
-    btn.textContent = '正在获取认证链接...';
+    btn.textContent = 'Obteniendo el enlace de autenticación...';
 
     try {
         const requestBody = projectId ? { project_id: projectId } : {};
-        showStatus(projectId ? '使用指定的项目ID生成认证链接...' : '将尝试自动检测项目ID，正在生成认证链接...', 'info');
+        showStatus(projectId ? 'Generando el enlace de autenticación con el ID de proyecto indicado...' : 'Se intentará detectar el ID de proyecto automáticamente; generando el enlace de autenticación...', 'info');
 
         const response = await fetch('./auth/start', {
             method: 'POST',
@@ -1070,33 +1070,33 @@ async function startAuth() {
             document.getElementById('authUrlSection').classList.remove('hidden');
 
             const msg = data.auto_project_detection
-                ? '认证链接已生成（将在认证完成后自动检测项目ID），请点击链接完成授权'
-                : `认证链接已生成（项目ID: ${data.detected_project_id}），请点击链接完成授权`;
+                ? 'Enlace de autenticación generado (el ID de proyecto se detectará al completar la autenticación). Pulsa el enlace para completar la autorización'
+                : `Enlace de autenticación generado (ID de proyecto: ${data.detected_project_id}). Pulsa el enlace para completar la autorización`;
             showStatus(msg, 'info');
             AppState.authInProgress = true;
         } else {
-            showStatus(`错误: ${data.error || '获取认证链接失败'}`, 'error');
+            showStatus(`Error: ${data.error || 'Error al obtener el enlace de autenticación'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     } finally {
         btn.disabled = false;
-        btn.textContent = '获取认证链接';
+        btn.textContent = 'Obtener enlace de autenticación';
     }
 }
 
 async function getCredentials() {
     if (!AppState.authInProgress) {
-        showStatus('请先获取认证链接并完成授权', 'error');
+        showStatus('Obtén primero el enlace de autenticación y completa la autorización', 'error');
         return;
     }
 
     const btn = document.getElementById('getCredsBtn');
     btn.disabled = true;
-    btn.textContent = '等待OAuth回调中...';
+    btn.textContent = 'Esperando la respuesta OAuth...';
 
     try {
-        showStatus('正在等待OAuth回调，这可能需要一些时间...', 'info');
+        showStatus('Esperando la respuesta OAuth; esto puede tardar un poco...', 'info');
 
         const requestBody = AppState.currentProjectId ? { project_id: AppState.currentProjectId } : {};
 
@@ -1112,63 +1112,63 @@ async function getCredentials() {
             document.getElementById('credentialsContent').textContent = JSON.stringify(data.credentials, null, 2);
 
             const msg = data.auto_detected_project
-                ? `✅ 认证成功！项目ID已自动检测为: ${data.credentials.project_id}，文件已保存到: ${data.file_path}`
-                : `✅ 认证成功！文件已保存到: ${data.file_path}`;
+                ? `✅ Autenticación correcta. ID de proyecto detectado automáticamente: ${data.credentials.project_id}. Archivo guardado en: ${data.file_path}`
+                : `✅ Autenticación correcta. Archivo guardado en: ${data.file_path}`;
             showStatus(msg, 'success');
 
             document.getElementById('credentialsSection').classList.remove('hidden');
             AppState.authInProgress = false;
         } else if (data.requires_project_selection && data.available_projects) {
-            let projectOptions = "请选择一个项目：\n\n";
+            let projectOptions = "Selecciona un proyecto:\n\n";
             data.available_projects.forEach((project, index) => {
                 projectOptions += `${index + 1}. ${project.name} (${project.project_id})\n`;
             });
-            projectOptions += `\n请输入序号 (1-${data.available_projects.length}):`;
+            projectOptions += `\nIntroduce el número (1-${data.available_projects.length}):`;
 
             const selection = prompt(projectOptions);
             const projectIndex = parseInt(selection) - 1;
 
             if (projectIndex >= 0 && projectIndex < data.available_projects.length) {
                 AppState.currentProjectId = data.available_projects[projectIndex].project_id;
-                btn.textContent = '重新尝试获取认证文件';
-                showStatus(`使用选择的项目重新尝试...`, 'info');
+                btn.textContent = 'Reintentar obtener el archivo de autenticación';
+                showStatus(`Reintentando con el proyecto seleccionado...`, 'info');
                 setTimeout(() => getCredentials(), 1000);
                 return;
             } else {
-                showStatus('无效的选择，请重新开始认证', 'error');
+                showStatus('Selección no válida; vuelve a iniciar la autenticación', 'error');
             }
         } else if (data.requires_manual_project_id) {
-            const userProjectId = prompt('无法自动检测项目ID，请手动输入您的Google Cloud项目ID:');
+            const userProjectId = prompt('No se ha podido detectar el ID de proyecto. Introduce manualmente el ID de tu proyecto de Google Cloud:');
             if (userProjectId && userProjectId.trim()) {
                 AppState.currentProjectId = userProjectId.trim();
-                btn.textContent = '重新尝试获取认证文件';
-                showStatus('使用手动输入的项目ID重新尝试...', 'info');
+                btn.textContent = 'Reintentar obtener el archivo de autenticación';
+                showStatus('Reintentando con el ID de proyecto introducido manualmente...', 'info');
                 setTimeout(() => getCredentials(), 1000);
                 return;
             } else {
-                showStatus('需要项目ID才能完成认证，请重新开始并输入正确的项目ID', 'error');
+                showStatus('Se necesita el ID de proyecto para completar la autenticación. Vuelve a empezar e introduce un ID correcto', 'error');
             }
         } else {
-            showStatus(`❌ 错误: ${data.error || '获取认证文件失败'}`, 'error');
+            showStatus(`❌ Error: ${data.error || 'Error al obtener el archivo de autenticación'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     } finally {
         btn.disabled = false;
-        btn.textContent = '获取认证文件';
+        btn.textContent = 'Obtener archivo de autenticación';
     }
 }
 
 // =====================================================================
-// Antigravity 认证相关函数
+// Funciones de autenticación de Antigravity
 // =====================================================================
 async function startAntigravityAuth() {
     const btn = document.getElementById('getAntigravityAuthBtn');
     btn.disabled = true;
-    btn.textContent = '生成认证链接中...';
+    btn.textContent = 'Generando el enlace de autenticación...';
 
     try {
-        showStatus('正在生成 Antigravity 认证链接...', 'info');
+        showStatus('Generando el enlace de autenticación de Antigravity...', 'info');
 
         const response = await fetch('./auth/start', {
             method: 'POST',
@@ -1187,30 +1187,30 @@ async function startAntigravityAuth() {
             authUrlLink.textContent = data.auth_url;
             document.getElementById('antigravityAuthUrlSection').classList.remove('hidden');
 
-            showStatus('✅ Antigravity 认证链接已生成！请点击链接完成授权', 'success');
+            showStatus('✅ Enlace de autenticación de Antigravity generado. Pulsa el enlace para completar la autorización', 'success');
         } else {
-            showStatus(`❌ 错误: ${data.error || '生成认证链接失败'}`, 'error');
+            showStatus(`❌ Error: ${data.error || 'Error al generar el enlace de autenticación'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     } finally {
         btn.disabled = false;
-        btn.textContent = '获取 Antigravity 认证链接';
+        btn.textContent = 'Obtener enlace de autenticación de Antigravity';
     }
 }
 
 async function getAntigravityCredentials() {
     if (!AppState.antigravityAuthInProgress) {
-        showStatus('请先获取 Antigravity 认证链接并完成授权', 'error');
+        showStatus('Obtén primero el enlace de autenticación de Antigravity y completa la autorización', 'error');
         return;
     }
 
     const btn = document.getElementById('getAntigravityCredsBtn');
     btn.disabled = true;
-    btn.textContent = '等待OAuth回调中...';
+    btn.textContent = 'Esperando la respuesta OAuth...';
 
     try {
-        showStatus('正在等待 Antigravity OAuth回调...', 'info');
+        showStatus('Esperando la respuesta OAuth de Antigravity...', 'info');
 
         const response = await fetch('./auth/callback', {
             method: 'POST',
@@ -1224,15 +1224,15 @@ async function getAntigravityCredentials() {
             document.getElementById('antigravityCredsContent').textContent = JSON.stringify(data.credentials, null, 2);
             document.getElementById('antigravityCredsSection').classList.remove('hidden');
             AppState.antigravityAuthInProgress = false;
-            showStatus(`✅ Antigravity 认证成功！文件已保存到: ${data.file_path}`, 'success');
+            showStatus(`✅ Autenticación de Antigravity correcta. Archivo guardado en: ${data.file_path}`, 'success');
         } else {
-            showStatus(`❌ 错误: ${data.error || '获取认证文件失败'}`, 'error');
+            showStatus(`❌ Error: ${data.error || 'Error al obtener el archivo de autenticación'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     } finally {
         btn.disabled = false;
-        btn.textContent = '获取 Antigravity 凭证';
+        btn.textContent = 'Obtener credencial de Antigravity';
     }
 }
 
@@ -1248,7 +1248,7 @@ function downloadAntigravityCredentials() {
 }
 
 // =====================================================================
-// 回调URL处理
+// Gestión de la URL de retorno
 // =====================================================================
 function toggleProjectIdSection() {
     const section = document.getElementById('projectIdSection');
@@ -1299,21 +1299,21 @@ async function processCallbackUrl() {
     const callbackUrl = document.getElementById('callbackUrlInput').value.trim();
 
     if (!callbackUrl) {
-        showStatus('请输入回调URL', 'error');
+        showStatus('Introduce la URL de retorno', 'error');
         return;
     }
 
     if (!callbackUrl.startsWith('http://') && !callbackUrl.startsWith('https://')) {
-        showStatus('请输入有效的URL（以http://或https://开头）', 'error');
+        showStatus('Introduce una URL válida (que empiece por http:// o https://)', 'error');
         return;
     }
 
     if (!callbackUrl.includes('code=') || !callbackUrl.includes('state=')) {
-        showStatus('❌ 这不是有效的回调URL！请确保：\n1. 已完成Google OAuth授权\n2. 复制的是浏览器地址栏的完整URL\n3. URL包含code和state参数', 'error');
+        showStatus('❌ Esta no es una URL de retorno válida. Comprueba que:\n1. Has completado la autorización OAuth de Google\n2. Has copiado la URL completa de la barra de direcciones del navegador\n3. La URL contiene los parámetros code y state', 'error');
         return;
     }
 
-    showStatus('正在从回调URL获取凭证...', 'info');
+    showStatus('Obteniendo la credencial desde la URL de retorno...', 'info');
 
     try {
         const projectId = document.getElementById('projectId')?.value.trim() || null;
@@ -1327,24 +1327,24 @@ async function processCallbackUrl() {
         const result = await response.json();
 
         if (result.credentials) {
-            showStatus(result.message || '从回调URL获取凭证成功！', 'success');
+            showStatus(result.message || 'Credencial obtenida correctamente desde la URL de retorno', 'success');
             document.getElementById('credentialsContent').innerHTML = '<pre>' + JSON.stringify(result.credentials, null, 2) + '</pre>';
             document.getElementById('credentialsSection').classList.remove('hidden');
         } else if (result.requires_manual_project_id) {
-            showStatus('需要手动指定项目ID，请在高级选项中填入Google Cloud项目ID后重试', 'error');
+            showStatus('Hay que indicar el ID de proyecto manualmente: introdúcelo en las opciones avanzadas y vuelve a intentarlo', 'error');
         } else if (result.requires_project_selection) {
-            let msg = '<br><strong>可用项目：</strong><br>';
+            let msg = '<br><strong>Proyectos disponibles:</strong><br>';
             result.available_projects.forEach(p => {
                 msg += `• ${p.name} (ID: ${p.project_id})<br>`;
             });
-            showStatus('检测到多个项目，请在高级选项中指定项目ID：' + msg, 'error');
+            showStatus('Se han detectado varios proyectos; indica el ID de proyecto en las opciones avanzadas: ' + msg, 'error');
         } else {
-            showStatus(result.error || '从回调URL获取凭证失败', 'error');
+            showStatus(result.error || 'Error al obtener la credencial desde la URL de retorno', 'error');
         }
 
         document.getElementById('callbackUrlInput').value = '';
     } catch (error) {
-        showStatus(`从回调URL获取凭证失败: ${error.message}`, 'error');
+        showStatus(`Error al obtener la credencial desde la URL de retorno: ${error.message}`, 'error');
     }
 }
 
@@ -1352,21 +1352,21 @@ async function processAntigravityCallbackUrl() {
     const callbackUrl = document.getElementById('antigravityCallbackUrlInput').value.trim();
 
     if (!callbackUrl) {
-        showStatus('请输入回调URL', 'error');
+        showStatus('Introduce la URL de retorno', 'error');
         return;
     }
 
     if (!callbackUrl.startsWith('http://') && !callbackUrl.startsWith('https://')) {
-        showStatus('请输入有效的URL（以http://或https://开头）', 'error');
+        showStatus('Introduce una URL válida (que empiece por http:// o https://)', 'error');
         return;
     }
 
     if (!callbackUrl.includes('code=') || !callbackUrl.includes('state=')) {
-        showStatus('❌ 这不是有效的回调URL！请确保包含code和state参数', 'error');
+        showStatus('❌ Esta no es una URL de retorno válida. Asegúrate de que contiene los parámetros code y state', 'error');
         return;
     }
 
-    showStatus('正在从回调URL获取 Antigravity 凭证...', 'info');
+    showStatus('Obteniendo la credencial de Antigravity desde la URL de retorno...', 'info');
 
     try {
         const response = await fetch('./auth/callback-url', {
@@ -1378,23 +1378,23 @@ async function processAntigravityCallbackUrl() {
         const result = await response.json();
 
         if (result.credentials) {
-            showStatus(result.message || '从回调URL获取 Antigravity 凭证成功！', 'success');
+            showStatus(result.message || 'Credencial de Antigravity obtenida correctamente desde la URL de retorno', 'success');
             document.getElementById('antigravityCredsContent').textContent = JSON.stringify(result.credentials, null, 2);
             document.getElementById('antigravityCredsSection').classList.remove('hidden');
         } else {
-            showStatus(result.error || '从回调URL获取 Antigravity 凭证失败', 'error');
+            showStatus(result.error || 'Error al obtener la credencial de Antigravity desde la URL de retorno', 'error');
         }
 
         document.getElementById('antigravityCallbackUrlInput').value = '';
     } catch (error) {
-        showStatus(`从回调URL获取 Antigravity 凭证失败: ${error.message}`, 'error');
+        showStatus(`Error al obtener la credencial de Antigravity desde la URL de retorno: ${error.message}`, 'error');
     }
 }
 
 // =====================================================================
-// 全局兼容函数（供HTML调用）
+// Funciones globales de compatibilidad (invocadas desde el HTML)
 // =====================================================================
-// 普通凭证管理
+// Gestión de credenciales normales
 function refreshCredsStatus() { AppState.creds.refresh(); }
 function applyStatusFilter() { AppState.creds.applyStatusFilter(); }
 function changePage(direction) { AppState.creds.changePage(direction); }
@@ -1430,9 +1430,9 @@ function downloadCred(filename) {
             a.download = filename;
             a.click();
             window.URL.revokeObjectURL(url);
-            showStatus(`已下载文件: ${filename}`, 'success');
+            showStatus(`Archivo descargado: ${filename}`, 'success');
         })
-        .catch(() => showStatus(`下载失败: ${filename}`, 'error'));
+        .catch(() => showStatus(`Error al descargar: ${filename}`, 'error'));
 }
 async function downloadAllCreds() {
     try {
@@ -1447,14 +1447,14 @@ async function downloadAllCreds() {
             a.download = 'credentials.zip';
             a.click();
             window.URL.revokeObjectURL(url);
-            showStatus('已下载所有凭证文件', 'success');
+            showStatus('Se han descargado todos los archivos de credenciales', 'success');
         }
     } catch (error) {
-        showStatus(`打包下载失败: ${error.message}`, 'error');
+        showStatus(`Error al descargar el paquete: ${error.message}`, 'error');
     }
 }
 
-// Antigravity凭证管理
+// Gestión de credenciales de Antigravity
 function refreshAntigravityCredsList() { AppState.antigravityCreds.refresh(); }
 function applyAntigravityStatusFilter() { AppState.antigravityCreds.applyStatusFilter(); }
 function changeAntigravityPage(direction) { AppState.antigravityCreds.changePage(direction); }
@@ -1490,12 +1490,12 @@ function downloadAntigravityCred(filename) {
             a.download = filename;
             a.click();
             window.URL.revokeObjectURL(url);
-            showStatus(`✅ 已下载: ${filename}`, 'success');
+            showStatus(`✅ Descargado: ${filename}`, 'success');
         })
-        .catch(() => showStatus(`下载失败: ${filename}`, 'error'));
+        .catch(() => showStatus(`Error al descargar: ${filename}`, 'error'));
 }
 function deleteAntigravityCred(filename) {
-    if (confirm(`确定要删除 ${filename} 吗？`)) {
+    if (confirm(`¿Seguro que quieres eliminar ${filename}?`)) {
         AppState.antigravityCreds.action(filename, 'delete');
     }
 }
@@ -1510,14 +1510,14 @@ async function downloadAllAntigravityCreds() {
             a.download = `antigravity_credentials_${Date.now()}.zip`;
             a.click();
             window.URL.revokeObjectURL(url);
-            showStatus('✅ 所有Antigravity凭证已打包下载', 'success');
+            showStatus('✅ Todas las credenciales de Antigravity se han descargado en un paquete', 'success');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     }
 }
 
-// 文件上传
+// Subida de archivos
 function handleFileSelect(event) { AppState.uploadFiles.handleFileSelect(event); }
 function removeFile(index) { AppState.uploadFiles.removeFile(index); }
 function clearFiles() { AppState.uploadFiles.clearFiles(); }
@@ -1534,23 +1534,23 @@ function removeAntigravityFile(index) { AppState.antigravityUploadFiles.removeFi
 function clearAntigravityFiles() { AppState.antigravityUploadFiles.clearFiles(); }
 function uploadAntigravityFiles() { AppState.antigravityUploadFiles.upload(); }
 
-// 邮箱相关
-// 辅助函数：根据文件名更新卡片中的邮箱显示
+// Correo electrónico
+// Función auxiliar: actualiza el correo mostrado en la tarjeta a partir del nombre de archivo
 function updateEmailDisplay(filename, email, managerType = 'normal') {
-    // 查找对应的凭证卡片
+    // Buscar la tarjeta de credencial correspondiente
     const containerId = managerType === 'antigravity' ? 'antigravityCredsList' : 'credsList';
     const container = document.getElementById(containerId);
     if (!container) return false;
 
-    // 通过 data-filename 找到对应的复选框，再找到其父卡片
+    // Localizar la casilla mediante data-filename y después su tarjeta padre
     const checkbox = container.querySelector(`input[data-filename="${filename}"]`);
     if (!checkbox) return false;
 
-    // 找到对应的 cred-card 元素
+    // Localizar el elemento cred-card correspondiente
     const card = checkbox.closest('.cred-card');
     if (!card) return false;
 
-    // 找到邮箱显示元素
+    // Localizar el elemento que muestra el correo
     const emailDiv = card.querySelector('.cred-email');
     if (emailDiv) {
         emailDiv.textContent = email;
@@ -1563,48 +1563,48 @@ function updateEmailDisplay(filename, email, managerType = 'normal') {
 
 async function fetchUserEmail(filename) {
     try {
-        showStatus('正在获取用户邮箱...', 'info');
+        showStatus('Obteniendo el correo del usuario...', 'info');
         const response = await fetch(`./creds/fetch-email/${encodeURIComponent(filename)}`, {
             method: 'POST',
             headers: getAuthHeaders()
         });
         const data = await response.json();
         if (response.ok && data.user_email) {
-            showStatus(`成功获取邮箱: ${data.user_email}`, 'success');
-            // 直接更新卡片中的邮箱显示，不刷新整个列表
+            showStatus(`Correo obtenido: ${data.user_email}`, 'success');
+            // Actualizar el correo de la tarjeta sin recargar toda la lista
             updateEmailDisplay(filename, data.user_email, 'normal');
         } else {
-            showStatus(data.message || '无法获取用户邮箱', 'error');
+            showStatus(data.message || 'No se ha podido obtener el correo del usuario', 'error');
         }
     } catch (error) {
-        showStatus(`获取邮箱失败: ${error.message}`, 'error');
+        showStatus(`Error al obtener el correo: ${error.message}`, 'error');
     }
 }
 
 async function fetchAntigravityUserEmail(filename) {
     try {
-        showStatus('正在获取用户邮箱...', 'info');
+        showStatus('Obteniendo el correo del usuario...', 'info');
         const response = await fetch(`./creds/fetch-email/${encodeURIComponent(filename)}?mode=antigravity`, {
             method: 'POST',
             headers: getAuthHeaders()
         });
         const data = await response.json();
         if (response.ok && data.user_email) {
-            showStatus(`成功获取邮箱: ${data.user_email}`, 'success');
-            // 直接更新卡片中的邮箱显示，不刷新整个列表
+            showStatus(`Correo obtenido: ${data.user_email}`, 'success');
+            // Actualizar el correo de la tarjeta sin recargar toda la lista
             updateEmailDisplay(filename, data.user_email, 'antigravity');
         } else {
-            showStatus(data.message || '无法获取用户邮箱', 'error');
+            showStatus(data.message || 'No se ha podido obtener el correo del usuario', 'error');
         }
     } catch (error) {
-        showStatus(`获取邮箱失败: ${error.message}`, 'error');
+        showStatus(`Error al obtener el correo: ${error.message}`, 'error');
     }
 }
 
 async function verifyProjectId(filename) {
     try {
-        // 显示加载状态
-        showStatus('🔍 正在检验Project ID，请稍候...', 'info');
+        // Mostrar el estado de carga
+        showStatus('🔍 Verificando el Project ID, espera un momento...', 'info');
 
         const response = await fetch(`./creds/verify-project/${encodeURIComponent(filename)}`, {
             method: 'POST',
@@ -1613,35 +1613,35 @@ async function verifyProjectId(filename) {
         const data = await response.json();
 
         if (response.ok && data.success) {
-            // 成功时显示绿色成功消息和Project ID
+            // Mostrar el mensaje de éxito junto al Project ID
             const tierLine = data.subscription_tier ? `\nTier: ${data.subscription_tier}` : '';
             const creditLine = data.credit_amount !== undefined && data.credit_amount !== null
-                ? `\n积分: ${data.credit_amount}`
+                ? `\nCréditos: ${data.credit_amount}`
                 : '';
-            const successMsg = `✅ 检验成功！\n文件: ${filename}\nProject ID: ${data.project_id}${tierLine}${creditLine}\n\n${data.message}`;
+            const successMsg = `✅ Verificación correcta.\nArchivo: ${filename}\nProject ID: ${data.project_id}${tierLine}${creditLine}\n\n${data.message}`;
             showStatus(successMsg.replace(/\n/g, '<br>'), 'success');
 
-            // 弹出成功提示
-            showMessageModal('检验成功', `✅ 检验成功！\n\n文件: ${filename}\nProject ID: ${data.project_id}${tierLine}${creditLine}\n\n${data.message}`, 'success');
+            // Mostrar el aviso de éxito
+            showMessageModal('Verificación correcta', `✅ Verificación correcta.\n\nArchivo: ${filename}\nProject ID: ${data.project_id}${tierLine}${creditLine}\n\n${data.message}`, 'success');
 
             await AppState.creds.refresh();
         } else {
-            // 失败时显示红色错误消息
-            const errorMsg = data.message || '检验失败';
+            // Mostrar el mensaje de error
+            const errorMsg = data.message || 'Error en la verificación';
             showStatus(`❌ ${errorMsg}`, 'error');
-            showMessageModal('检验失败', `❌ 检验失败\n\n${errorMsg}`, 'error');
+            showMessageModal('Error en la verificación', `❌ Error en la verificación\n\n${errorMsg}`, 'error');
         }
     } catch (error) {
-        const errorMsg = `检验失败: ${error.message}`;
+        const errorMsg = `Error en la verificación: ${error.message}`;
         showStatus(`❌ ${errorMsg}`, 'error');
-        showMessageModal('检验失败', `❌ ${errorMsg}`, 'error');
+        showMessageModal('Error en la verificación', `❌ ${errorMsg}`, 'error');
     }
 }
 
 async function verifyAntigravityProjectId(filename) {
     try {
-        // 显示加载状态
-        showStatus('🔍 正在检验Antigravity Project ID，请稍候...', 'info');
+        // Mostrar el estado de carga
+        showStatus('🔍 Verificando el Project ID de Antigravity, espera un momento...', 'info');
 
         const response = await fetch(`./creds/verify-project/${encodeURIComponent(filename)}?mode=antigravity`, {
             method: 'POST',
@@ -1650,131 +1650,131 @@ async function verifyAntigravityProjectId(filename) {
         const data = await response.json();
 
         if (response.ok && data.success) {
-            // 成功时显示绿色成功消息和Project ID
+            // Mostrar el mensaje de éxito junto al Project ID
             const tierLine = data.subscription_tier ? `\nTier: ${data.subscription_tier}` : '';
             const creditLine = data.credit_amount !== undefined && data.credit_amount !== null
-                ? `\n积分: ${data.credit_amount}`
+                ? `\nCréditos: ${data.credit_amount}`
                 : '';
-            const successMsg = `✅ 检验成功！\n文件: ${filename}\nProject ID: ${data.project_id}${tierLine}${creditLine}\n\n${data.message}`;
+            const successMsg = `✅ Verificación correcta.\nArchivo: ${filename}\nProject ID: ${data.project_id}${tierLine}${creditLine}\n\n${data.message}`;
             showStatus(successMsg.replace(/\n/g, '<br>'), 'success');
 
-            // 弹出成功提示
-            showMessageModal('检验成功', `✅ Antigravity检验成功！\n\n文件: ${filename}\nProject ID: ${data.project_id}${tierLine}${creditLine}\n\n${data.message}`, 'success');
+            // Mostrar el aviso de éxito
+            showMessageModal('Verificación correcta', `✅ Verificación de Antigravity correcta.\n\nArchivo: ${filename}\nProject ID: ${data.project_id}${tierLine}${creditLine}\n\n${data.message}`, 'success');
 
             await AppState.antigravityCreds.refresh();
         } else {
-            // 失败时显示红色错误消息
-            const errorMsg = data.message || '检验失败';
+            // Mostrar el mensaje de error
+            const errorMsg = data.message || 'Error en la verificación';
             showStatus(`❌ ${errorMsg}`, 'error');
-            showMessageModal('检验失败', `❌ 检验失败\n\n${errorMsg}`, 'error');
+            showMessageModal('Error en la verificación', `❌ Error en la verificación\n\n${errorMsg}`, 'error');
         }
     } catch (error) {
-        const errorMsg = `检验失败: ${error.message}`;
+        const errorMsg = `Error en la verificación: ${error.message}`;
         showStatus(`❌ ${errorMsg}`, 'error');
-        showMessageModal('检验失败', `❌ ${errorMsg}`, 'error');
+        showMessageModal('Error en la verificación', `❌ ${errorMsg}`, 'error');
     }
 }
 
 async function testCredential(filename) {
     try {
-        // 显示加载状态
-        showStatus('🧪 正在测试凭证，请稍候...', 'info');
+        // Mostrar el estado de carga
+        showStatus('🧪 Probando la credencial, espera un momento...', 'info');
 
         const response = await fetch(`./creds/test/${encodeURIComponent(filename)}`, {
             method: 'POST',
             headers: getAuthHeaders()
         });
 
-        // 解析JSON响应
+        // Analizar la respuesta JSON
         const data = await response.json();
 
         if (response.status === 200) {
-            // 凭证可用
-            const successMsg = `✅ 测试成功！\n文件: ${filename}\n状态: ${data.message || '凭证可用'} (${data.status_code || 200})`;
-            showStatus('✅ 测试成功！', 'success');
-            showMessageModal('测试成功', successMsg, 'success');
+            // Credencial válida
+            const successMsg = `✅ Prueba correcta.\nArchivo: ${filename}\nEstado: ${data.message || 'Credencial válida'} (${data.status_code || 200})`;
+            showStatus('✅ Prueba correcta', 'success');
+            showMessageModal('Prueba correcta', successMsg, 'success');
             await AppState.creds.refresh();
         }
         else {
-            // 其他错误 - 显示完整错误信息
-            let errorDetails = `❌ 测试失败\n文件: ${filename}\n`;
+            // Otros errores: mostrar la información completa del error
+            let errorDetails = `❌ Prueba fallida\nArchivo: ${filename}\n`;
 
-            // 如果有完整的错误响应，添加到详情中
+            // Si hay una respuesta de error completa, añadirla a los detalles
             if (data.error) {
                 try {
-                    // 尝试格式化JSON错误
+                    // Intentar formatear el error JSON
                     const errorObj = JSON.parse(data.error);
-                    errorDetails += `\n错误详情:\n${JSON.stringify(errorObj, null, 2)}`;
+                    errorDetails += `\nDetalles del error:\n${JSON.stringify(errorObj, null, 2)}`;
                 } catch {
-                    // 如果不是JSON，直接显示文本
-                    errorDetails += `\n错误详情:\n${data.error}`;
+                    // Si no es JSON, mostrar el texto tal cual
+                    errorDetails += `\nDetalles del error:\n${data.error}`;
                 }
             } else {
-                errorDetails += `错误码: ${data.status_code || response.status}`;
+                errorDetails += `Código de error: ${data.status_code || response.status}`;
             }
 
-            showStatus(`❌ 测试失败 - ${data.message || '错误码: ' + (data.status_code || response.status)}`, 'error');
-            showMessageModal('测试失败', errorDetails, 'error');
+            showStatus(`❌ Prueba fallida - ${data.message || 'Código de error: ' + (data.status_code || response.status)}`, 'error');
+            showMessageModal('Prueba fallida', errorDetails, 'error');
         }
     } catch (error) {
-        const errorMsg = `测试失败: ${error.message}`;
+        const errorMsg = `Error en la prueba: ${error.message}`;
         showStatus(`❌ ${errorMsg}`, 'error');
-        showMessageModal('测试失败', `❌ ${errorMsg}`, 'error');
+        showMessageModal('Prueba fallida', `❌ ${errorMsg}`, 'error');
     }
 }
 
 async function testAntigravityCredential(filename) {
     try {
-        // 显示加载状态
-        showStatus('🧪 正在测试Antigravity凭证，请稍候...', 'info');
+        // Mostrar el estado de carga
+        showStatus('🧪 Probando la credencial de Antigravity, espera un momento...', 'info');
 
         const response = await fetch(`./creds/test/${encodeURIComponent(filename)}?mode=antigravity`, {
             method: 'POST',
             headers: getAuthHeaders()
         });
 
-        // 解析JSON响应
+        // Analizar la respuesta JSON
         const data = await response.json();
 
         if (response.status === 200) {
-            // 凭证可用
-            const successMsg = `✅ 测试成功！\n文件: ${filename}\n状态: ${data.message || 'Antigravity凭证可用'} (${data.status_code || 200})`;
-            showStatus('✅ 测试成功！', 'success');
-            showMessageModal('测试成功', successMsg, 'success');
+            // Credencial válida
+            const successMsg = `✅ Prueba correcta.\nArchivo: ${filename}\nEstado: ${data.message || 'Credencial de Antigravity válida'} (${data.status_code || 200})`;
+            showStatus('✅ Prueba correcta', 'success');
+            showMessageModal('Prueba correcta', successMsg, 'success');
             await AppState.antigravityCreds.refresh();
         }
         else {
-            // 其他错误 - 显示完整错误信息
-            let errorDetails = `❌ 测试失败\n文件: ${filename}\n`;
+            // Otros errores: mostrar la información completa del error
+            let errorDetails = `❌ Prueba fallida\nArchivo: ${filename}\n`;
 
-            // 如果有完整的错误响应，添加到详情中
+            // Si hay una respuesta de error completa, añadirla a los detalles
             if (data.error) {
                 try {
-                    // 尝试格式化JSON错误
+                    // Intentar formatear el error JSON
                     const errorObj = JSON.parse(data.error);
-                    errorDetails += `\n错误详情:\n${JSON.stringify(errorObj, null, 2)}`;
+                    errorDetails += `\nDetalles del error:\n${JSON.stringify(errorObj, null, 2)}`;
                 } catch {
-                    // 如果不是JSON，直接显示文本
-                    errorDetails += `\n错误详情:\n${data.error}`;
+                    // Si no es JSON, mostrar el texto tal cual
+                    errorDetails += `\nDetalles del error:\n${data.error}`;
                 }
             } else {
-                errorDetails += `错误码: ${data.status_code || response.status}`;
+                errorDetails += `Código de error: ${data.status_code || response.status}`;
             }
 
-            showStatus(`❌ 测试失败 - ${data.message || '错误码: ' + (data.status_code || response.status)}`, 'error');
-            showMessageModal('测试失败', errorDetails, 'error');
+            showStatus(`❌ Prueba fallida - ${data.message || 'Código de error: ' + (data.status_code || response.status)}`, 'error');
+            showMessageModal('Prueba fallida', errorDetails, 'error');
         }
     } catch (error) {
-        const errorMsg = `测试失败: ${error.message}`;
+        const errorMsg = `Error en la prueba: ${error.message}`;
         showStatus(`❌ ${errorMsg}`, 'error');
-        showMessageModal('测试失败', `❌ ${errorMsg}`, 'error');
+        showMessageModal('Prueba fallida', `❌ ${errorMsg}`, 'error');
     }
 }
 
 async function configurePreviewChannel(filename) {
     try {
-        // 显示加载状态
-        showStatus('🔧 正在配置Preview通道，请稍候...', 'info');
+        // Mostrar el estado de carga
+        showStatus('🔧 Configurando el canal Preview, espera un momento...', 'info');
 
         const response = await fetch(`./creds/configure-preview/${encodeURIComponent(filename)}`, {
             method: 'POST',
@@ -1784,34 +1784,34 @@ async function configurePreviewChannel(filename) {
         const data = await response.json();
 
         if (response.ok && data.success) {
-            // 配置成功
-            const successMsg = `✅ 配置成功！\n文件: ${filename}\n状态: ${data.message}`;
+            // Configuración correcta
+            const successMsg = `✅ Configuración correcta.\nArchivo: ${filename}\nEstado: ${data.message}`;
             showStatus(successMsg.replace(/\n/g, '<br>'), 'success');
-            showMessageModal('Preview通道配置成功', `✅ Preview通道配置成功！\n\n文件: ${filename}\n\n${data.message}\n\nSetting ID: ${data.setting_id || 'N/A'}\nBinding ID: ${data.binding_id || 'N/A'}`, 'success');
+            showMessageModal('Canal Preview configurado', `✅ Canal Preview configurado correctamente.\n\nArchivo: ${filename}\n\n${data.message}\n\nSetting ID: ${data.setting_id || 'N/A'}\nBinding ID: ${data.binding_id || 'N/A'}`, 'success');
 
-            // 刷新凭证列表
+            // Actualizar la lista de credenciales
             await AppState.creds.refresh();
         } else {
-            // 配置失败
-            const errorMsg = data.message || '配置失败';
+            // Error de configuración
+            const errorMsg = data.message || 'Error de configuración';
             const errorDetail = data.error || '';
             const step = data.step || '';
 
-            let alertMsg = `❌ Preview通道配置失败\n\n文件: ${filename}\n\n${errorMsg}`;
+            let alertMsg = `❌ Error al configurar el canal Preview\n\nArchivo: ${filename}\n\n${errorMsg}`;
             if (step) {
-                alertMsg += `\n失败步骤: ${step}`;
+                alertMsg += `\nPaso fallido: ${step}`;
             }
             if (errorDetail) {
-                alertMsg += `\n\n错误详情: ${errorDetail}`;
+                alertMsg += `\n\nDetalles del error: ${errorDetail}`;
             }
 
             showStatus(`❌ ${errorMsg}`, 'error');
-            showMessageModal('Preview通道配置失败', alertMsg, 'error');
+            showMessageModal('Error al configurar el canal Preview', alertMsg, 'error');
         }
     } catch (error) {
-        const errorMsg = `配置Preview通道失败: ${error.message}`;
+        const errorMsg = `Error al configurar el canal Preview: ${error.message}`;
         showStatus(`❌ ${errorMsg}`, 'error');
-        showMessageModal('配置Preview通道失败', `❌ ${errorMsg}`, 'error');
+        showMessageModal('Error al configurar el canal Preview', `❌ ${errorMsg}`, 'error');
     }
 }
 
@@ -1819,22 +1819,22 @@ async function toggleAntigravityQuotaDetails(pathId) {
     const quotaDetails = document.getElementById('quota-' + pathId);
     if (!quotaDetails) return;
 
-    // 切换显示状态
+    // Alternar la visibilidad
     const isShowing = quotaDetails.style.display === 'block';
 
     if (isShowing) {
-        // 收起
+        // Contraer
         quotaDetails.style.display = 'none';
     } else {
-        // 展开
+        // Expandir
         quotaDetails.style.display = 'block';
 
         const contentDiv = quotaDetails.querySelector('.cred-quota-content');
         const filename = contentDiv.getAttribute('data-filename');
 
-        // 每次展开都重新加载数据
+        // Recargar los datos en cada expansión
         if (filename) {
-            contentDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">📊 正在加载额度信息...</div>';
+            contentDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">📊 Cargando la información de cuota...</div>';
 
             try {
                 const response = await fetch(`./creds/quota/${encodeURIComponent(filename)}?mode=antigravity`, {
@@ -1844,14 +1844,14 @@ async function toggleAntigravityQuotaDetails(pathId) {
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    // 成功时渲染美化的额度信息
+                    // Renderizar la información de cuota
                     const models = data.models || {};
 
                     if (Object.keys(models).length === 0) {
                         contentDiv.innerHTML = `
                             <div style="text-align: center; padding: 20px; color: #999;">
                                 <div style="font-size: 48px; margin-bottom: 10px;">📊</div>
-                                <div>暂无额度信息</div>
+                                <div>No hay información de cuota</div>
                             </div>
                         `;
                     } else {
@@ -1859,32 +1859,32 @@ async function toggleAntigravityQuotaDetails(pathId) {
                             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px 8px 0 0; margin: -10px -10px 15px -10px;">
                                 <h4 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
                                     <span style="font-size: 20px;">📊</span>
-                                    <span>额度信息详情</span>
+                                    <span>Detalle de la información de cuota</span>
                                 </h4>
-                                <div style="font-size: 12px; opacity: 0.9; margin-top: 5px;">文件: ${filename}</div>
+                                <div style="font-size: 12px; opacity: 0.9; margin-top: 5px;">Archivo: ${filename}</div>
                             </div>
                             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
                         `;
 
                         for (const [modelName, quotaData] of Object.entries(models)) {
-                            // 后端返回的是剩余比例 (0-1)，不是绝对数量
+                            // El backend devuelve la proporción restante (0-1), no una cantidad absoluta
                             const remainingFraction = quotaData.remaining || 0;
                             const resetTime = quotaData.resetTime || 'N/A';
 
-                            // 计算已使用百分比（1 - 剩余比例）
+                            // Calcular el porcentaje utilizado (1 - proporción restante)
                             const usedPercentage = Math.round((1 - remainingFraction) * 100);
                             const remainingPercentage = Math.round(remainingFraction * 100);
 
-                            // 根据使用情况选择颜色
-                            let percentageColor = '#28a745'; // 绿色：使用少
-                            if (usedPercentage >= 90) percentageColor = '#dc3545'; // 红色：使用多
-                            else if (usedPercentage >= 70) percentageColor = '#ffc107'; // 黄色：使用较多
-                            else if (usedPercentage >= 50) percentageColor = '#17a2b8'; // 蓝色：使用中等
+                            // Elegir el color según el uso
+                            let percentageColor = '#28a745'; // Verde: uso bajo
+                            if (usedPercentage >= 90) percentageColor = '#dc3545'; // Rojo: uso muy alto
+                            else if (usedPercentage >= 70) percentageColor = '#ffc107'; // Amarillo: uso alto
+                            else if (usedPercentage >= 50) percentageColor = '#17a2b8'; // Azul: uso medio
 
                             quotaHTML += `
                                 <div style="background: white; border-left: 4px solid ${percentageColor}; border-radius: 4px; padding: 8px 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                        <div style="font-weight: bold; color: #333; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; margin-right: 8px;" title="${modelName} - 剩余${remainingPercentage}% - ${resetTime}">
+                                        <div style="font-weight: bold; color: #333; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; margin-right: 8px;" title="${modelName} - restante ${remainingPercentage}% - ${resetTime}">
                                             ${modelName}
                                         </div>
                                         <div style="font-size: 13px; font-weight: bold; color: ${percentageColor}; white-space: nowrap;">
@@ -1905,14 +1905,14 @@ async function toggleAntigravityQuotaDetails(pathId) {
                         contentDiv.innerHTML = quotaHTML;
                     }
 
-                    showStatus('✅ 成功加载额度信息', 'success');
+                    showStatus('✅ Información de cuota cargada correctamente', 'success');
                 } else {
-                    // 失败时显示错误
-                    const errorMsg = data.error || '获取额度信息失败';
+                    // Mostrar el error
+                    const errorMsg = data.error || 'Error al obtener la información de cuota';
                     contentDiv.innerHTML = `
                         <div style="text-align: center; padding: 20px; color: #dc3545;">
                             <div style="font-size: 48px; margin-bottom: 10px;">❌</div>
-                            <div style="font-weight: bold; margin-bottom: 5px;">获取额度信息失败</div>
+                            <div style="font-weight: bold; margin-bottom: 5px;">Error al obtener la información de cuota</div>
                             <div style="font-size: 13px; color: #666;">${errorMsg}</div>
                         </div>
                     `;
@@ -1922,18 +1922,18 @@ async function toggleAntigravityQuotaDetails(pathId) {
                 contentDiv.innerHTML = `
                     <div style="text-align: center; padding: 20px; color: #dc3545;">
                         <div style="font-size: 48px; margin-bottom: 10px;">❌</div>
-                        <div style="font-weight: bold; margin-bottom: 5px;">网络错误</div>
+                        <div style="font-weight: bold; margin-bottom: 5px;">Error de red</div>
                         <div style="font-size: 13px; color: #666;">${error.message}</div>
                     </div>
                 `;
-                showStatus(`❌ 获取额度信息失败: ${error.message}`, 'error');
+                showStatus(`❌ Error al obtener la información de cuota: ${error.message}`, 'error');
             }
         }
     }
 }
 
 // =====================================================================
-// 查看报错详情
+// Ver los detalles de los errores
 // =====================================================================
 async function toggleErrorDetails(pathId) {
     await toggleErrorDetailsCommon(pathId, AppState.creds);
@@ -1947,16 +1947,16 @@ async function toggleErrorDetailsCommon(pathId, manager) {
     const errorDetails = document.getElementById('errors-' + pathId);
     if (!errorDetails) return;
 
-    // 切换显示状态
+    // Alternar la visibilidad
     const isShowing = errorDetails.classList.toggle('show');
 
     if (isShowing) {
         const contentDiv = errorDetails.querySelector('.cred-content');
         const filename = contentDiv.getAttribute('data-filename');
 
-        // 每次展开都重新加载数据
+        // Recargar los datos en cada expansión
         if (filename) {
-            contentDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">⏳ 正在加载报错信息...</div>';
+            contentDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">⏳ Cargando la información de errores...</div>';
 
             try {
                 const modeParam = manager.type === 'antigravity' ? 'mode=antigravity' : 'mode=geminicli';
@@ -1974,50 +1974,50 @@ async function toggleErrorDetailsCommon(pathId, manager) {
                         contentDiv.innerHTML = `
                             <div style="text-align: center; padding: 20px; color: #28a745;">
                                 <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
-                                <div style="font-weight: bold;">无报错记录</div>
-                                <div style="font-size: 12px; color: #666; margin-top: 8px;">该凭证运行正常</div>
+                                <div style="font-weight: bold;">Sin errores registrados</div>
+                                <div style="font-size: 12px; color: #666; margin-top: 8px;">Esta credencial funciona correctamente</div>
                             </div>
                         `;
                     } else {
                         let errorHTML = '';
 
-                        // 遍历所有错误码，从 errorMessages 对象中获取对应消息
+                        // Recorrer todos los códigos de error y obtener su mensaje del objeto errorMessages
                         errorCodes.forEach((errorCode) => {
-                            const messageStr = errorMessages[errorCode] || '无详细信息';
+                            const messageStr = errorMessages[errorCode] || 'Sin información detallada';
 
-                            // 提取核心错误消息和详细信息
+                            // Extraer el mensaje de error principal y los detalles
                             let displayMsg = messageStr;
                             let detailsHtml = '';
 
                             try {
-                                // 尝试解析 JSON 格式的 message
+                                // Intentar analizar el mensaje en formato JSON
                                 const parsedMsg = JSON.parse(messageStr);
                                 if (parsedMsg.error) {
-                                    // 显示核心错误信息
+                                    // Mostrar el mensaje de error principal
                                     if (parsedMsg.error.message) {
                                         displayMsg = parsedMsg.error.message;
                                     }
 
-                                    // 如果有 details 字段，也显示出来
+                                    // Si existe el campo details, mostrarlo también
                                     if (parsedMsg.error.details && Array.isArray(parsedMsg.error.details)) {
                                         detailsHtml = '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd;">';
-                                        detailsHtml += '<div style="font-size: 12px; color: #666; margin-bottom: 5px;">详细信息:</div>';
+                                        detailsHtml += '<div style="font-size: 12px; color: #666; margin-bottom: 5px;">Detalles:</div>';
 
                                         parsedMsg.error.details.forEach((detail, idx) => {
                                             detailsHtml += '<div style="font-size: 12px; margin-left: 10px; margin-bottom: 5px;">';
 
-                                            // 显示 @type
+                                            // Mostrar @type
                                             if (detail['@type']) {
                                                 const highlightedType = highlightHttpLinks(escapeHtml(detail['@type']));
-                                                detailsHtml += `<div style="color: #007bff;">类型: ${highlightedType}</div>`;
+                                                detailsHtml += `<div style="color: #007bff;">Tipo: ${highlightedType}</div>`;
                                             }
 
-                                            // 显示 reason
+                                            // Mostrar reason
                                             if (detail.reason) {
-                                                detailsHtml += `<div style="color: #dc3545;">原因: ${escapeHtml(detail.reason)}</div>`;
+                                                detailsHtml += `<div style="color: #dc3545;">Motivo: ${escapeHtml(detail.reason)}</div>`;
                                             }
 
-                                            // 显示 metadata（如 quotaResetTimeStamp）
+                                            // Mostrar metadata (p. ej. quotaResetTimeStamp)
                                             if (detail.metadata) {
                                                 detailsHtml += '<div style="margin-left: 10px; margin-top: 3px;">';
                                                 for (const [key, value] of Object.entries(detail.metadata)) {
@@ -2033,27 +2033,27 @@ async function toggleErrorDetailsCommon(pathId, manager) {
                                         detailsHtml += '</div>';
                                     }
 
-                                    // 如果有 status 字段，也显示
+                                    // Si existe el campo status, mostrarlo también
                                     if (parsedMsg.error.status) {
                                         if (!detailsHtml) {
                                             detailsHtml = '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd;">';
                                         }
-                                        detailsHtml += `<div style="font-size: 12px; color: #666;">状态: ${escapeHtml(parsedMsg.error.status)}</div>`;
+                                        detailsHtml += `<div style="font-size: 12px; color: #666;">Estado: ${escapeHtml(parsedMsg.error.status)}</div>`;
                                         if (!parsedMsg.error.details) {
                                             detailsHtml += '</div>';
                                         }
                                     }
                                 }
                             } catch (e) {
-                                // 如果不是 JSON 格式，直接使用原始消息
+                                // Si no está en formato JSON, usar el mensaje original
                             }
 
-                            // 对消息中的HTTP链接进行高亮处理
+                            // Resaltar los enlaces HTTP del mensaje
                             const highlightedMsg = highlightHttpLinks(escapeHtml(displayMsg));
 
                             errorHTML += `
                                 <div style="padding: 12px; margin-bottom: 10px; border-left: 3px solid #dc3545; background-color: #f8f9fa;">
-                                    <div style="font-weight: bold; color: #dc3545; margin-bottom: 8px;">错误码: ${errorCode}</div>
+                                    <div style="font-weight: bold; color: #dc3545; margin-bottom: 8px;">Código de error: ${errorCode}</div>
                                     <div style="line-height: 1.6; color: #333; white-space: pre-wrap; word-break: break-word;">
                                         ${highlightedMsg}
                                     </div>
@@ -2065,64 +2065,64 @@ async function toggleErrorDetailsCommon(pathId, manager) {
                         contentDiv.innerHTML = errorHTML;
                     }
 
-                    showStatus('✅ 成功加载报错信息', 'success');
+                    showStatus('✅ Información de errores cargada correctamente', 'success');
                 } else {
-                    // 失败时显示错误
-                    const errorMsg = data.detail || data.error || '获取报错信息失败';
+                    // Mostrar el error
+                    const errorMsg = data.detail || data.error || 'Error al obtener la información de errores';
                     contentDiv.innerHTML = `
                         <div style="text-align: center; padding: 20px; color: #dc3545;">
                             <div style="font-size: 48px; margin-bottom: 10px;">❌</div>
-                            <div style="font-weight: bold;">加载失败</div>
+                            <div style="font-weight: bold;">Error al cargar</div>
                             <div style="font-size: 12px; margin-top: 8px;">${errorMsg}</div>
                         </div>
                     `;
-                    showStatus(`❌ 获取报错信息失败: ${errorMsg}`, 'error');
+                    showStatus(`❌ Error al obtener la información de errores: ${errorMsg}`, 'error');
                 }
             } catch (error) {
                 contentDiv.innerHTML = `
                     <div style="text-align: center; padding: 20px; color: #dc3545;">
                         <div style="font-size: 48px; margin-bottom: 10px;">❌</div>
-                        <div style="font-weight: bold;">网络错误</div>
+                        <div style="font-weight: bold;">Error de red</div>
                         <div style="font-size: 12px; margin-top: 8px;">${error.message}</div>
                     </div>
                 `;
-                showStatus(`❌ 获取报错信息失败: ${error.message}`, 'error');
+                showStatus(`❌ Error al obtener la información de errores: ${error.message}`, 'error');
             }
         }
     }
 }
 
-// HTML转义函数
+// Función de escapado de HTML
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-// 高亮HTTP链接函数
+// Función para resaltar los enlaces HTTP
 function highlightHttpLinks(text) {
-    // 匹配 http:// 或 https:// 开头的URL
+    // Coincide con las URL que empiezan por http:// o https://
     const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
     return text.replace(urlRegex, function(url) {
-        return `<a href="${url}" target="_blank" style="color: #007bff; text-decoration: underline; word-break: break-all;" title="点击打开: ${url}">${url}</a>`;
+        return `<a href="${url}" target="_blank" style="color: #007bff; text-decoration: underline; word-break: break-all;" title="Clic para abrir: ${url}">${url}</a>`;
     });
 }
 
 async function batchVerifyProjectIds() {
     const selectedFiles = Array.from(AppState.creds.selectedFiles);
     if (selectedFiles.length === 0) {
-        showStatus('❌ 请先选择要检验的凭证', 'error');
-        showMessageModal('提示', '请先选择要检验的凭证', 'error');
+        showStatus('❌ Selecciona primero las credenciales que quieres verificar', 'error');
+        showMessageModal('Aviso', 'Selecciona primero las credenciales que quieres verificar', 'error');
         return;
     }
 
-    if (!confirm(`确定要批量检验 ${selectedFiles.length} 个凭证的Project ID吗？\n\n将并行检验以加快速度。`)) {
+    if (!confirm(`¿Seguro que quieres verificar el Project ID de ${selectedFiles.length} credenciales?\n\nLa verificación se hará en paralelo para acelerarla.`)) {
         return;
     }
 
-    showStatus(`🔍 正在并行检验 ${selectedFiles.length} 个凭证，请稍候...`, 'info');
+    showStatus(`🔍 Verificando ${selectedFiles.length} credenciales en paralelo, espera un momento...`, 'info');
 
-    // 并行执行所有检验请求
+    // Lanzar todas las peticiones de verificación en paralelo
     const promises = selectedFiles.map(async (filename) => {
         try {
             const response = await fetch(`./creds/verify-project/${encodeURIComponent(filename)}`, {
@@ -2140,17 +2140,17 @@ async function batchVerifyProjectIds() {
                     message: data.message
                 };
             } else {
-                return { success: false, filename, error: data.message || '失败' };
+                return { success: false, filename, error: data.message || 'Error' };
             }
         } catch (error) {
             return { success: false, filename, error: error.message };
         }
     });
 
-    // 等待所有请求完成
+    // Esperar a que terminen todas las peticiones
     const results = await Promise.all(promises);
 
-    // 统计结果
+    // Resumen de resultados
     let successCount = 0;
     let failCount = 0;
     const resultMessages = [];
@@ -2159,7 +2159,7 @@ async function batchVerifyProjectIds() {
         if (result.success) {
             successCount++;
             const creditSuffix = result.creditAmount !== undefined && result.creditAmount !== null
-                ? ` (积分: ${result.creditAmount})`
+                ? ` (créditos: ${result.creditAmount})`
                 : '';
             resultMessages.push(`✅ ${result.filename}: ${result.projectId}${creditSuffix}`);
         } else {
@@ -2170,17 +2170,17 @@ async function batchVerifyProjectIds() {
 
     await AppState.creds.refresh();
 
-    const summary = `批量检验完成！\n\n成功: ${successCount} 个\n失败: ${failCount} 个\n总计: ${selectedFiles.length} 个\n\n详细结果:\n${resultMessages.join('\n')}`;
+    const summary = `Verificación por lotes completada.\n\nCorrectas: ${successCount}\nFallidas: ${failCount}\nTotal: ${selectedFiles.length}\n\nResultados detallados:\n${resultMessages.join('\n')}`;
 
     if (failCount === 0) {
-        showStatus(`✅ 全部检验成功！成功检验 ${successCount}/${selectedFiles.length} 个凭证`, 'success');
-        showMessageModal('批量检验完成', summary, 'success');
+        showStatus(`✅ Todas las verificaciones son correctas: ${successCount}/${selectedFiles.length} credenciales`, 'success');
+        showMessageModal('Verificación por lotes completada', summary, 'success');
     } else if (successCount === 0) {
-        showStatus(`❌ 全部检验失败！失败 ${failCount}/${selectedFiles.length} 个凭证`, 'error');
-        showMessageModal('批量检验完成', summary, 'error');
+        showStatus(`❌ Todas las verificaciones han fallado: ${failCount}/${selectedFiles.length} credenciales`, 'error');
+        showMessageModal('Verificación por lotes completada', summary, 'error');
     } else {
-        showStatus(`⚠️ 批量检验完成：成功 ${successCount}/${selectedFiles.length} 个，失败 ${failCount} 个`, 'info');
-        showMessageModal('批量检验完成', summary, 'info');
+        showStatus(`⚠️ Verificación por lotes completada: ${successCount}/${selectedFiles.length} correctas, ${failCount} fallidas`, 'info');
+        showMessageModal('Verificación por lotes completada', summary, 'info');
     }
 
     console.log(summary);
@@ -2189,18 +2189,18 @@ async function batchVerifyProjectIds() {
 async function batchVerifyAntigravityProjectIds() {
     const selectedFiles = Array.from(AppState.antigravityCreds.selectedFiles);
     if (selectedFiles.length === 0) {
-        showStatus('❌ 请先选择要检验的Antigravity凭证', 'error');
-        showMessageModal('提示', '请先选择要检验的Antigravity凭证', 'error');
+        showStatus('❌ Selecciona primero las credenciales de Antigravity que quieres verificar', 'error');
+        showMessageModal('Aviso', 'Selecciona primero las credenciales de Antigravity que quieres verificar', 'error');
         return;
     }
 
-    if (!confirm(`确定要批量检验 ${selectedFiles.length} 个Antigravity凭证的Project ID吗？\n\n将并行检验以加快速度。`)) {
+    if (!confirm(`¿Seguro que quieres verificar el Project ID de ${selectedFiles.length} credenciales de Antigravity?\n\nLa verificación se hará en paralelo para acelerarla.`)) {
         return;
     }
 
-    showStatus(`🔍 正在并行检验 ${selectedFiles.length} 个Antigravity凭证，请稍候...`, 'info');
+    showStatus(`🔍 Verificando ${selectedFiles.length} credenciales de Antigravity en paralelo, espera un momento...`, 'info');
 
-    // 并行执行所有检验请求
+    // Lanzar todas las peticiones de verificación en paralelo
     const promises = selectedFiles.map(async (filename) => {
         try {
             const response = await fetch(`./creds/verify-project/${encodeURIComponent(filename)}?mode=antigravity`, {
@@ -2218,17 +2218,17 @@ async function batchVerifyAntigravityProjectIds() {
                     message: data.message
                 };
             } else {
-                return { success: false, filename, error: data.message || '失败' };
+                return { success: false, filename, error: data.message || 'Error' };
             }
         } catch (error) {
             return { success: false, filename, error: error.message };
         }
     });
 
-    // 等待所有请求完成
+    // Esperar a que terminen todas las peticiones
     const results = await Promise.all(promises);
 
-    // 统计结果
+    // Resumen de resultados
     let successCount = 0;
     let failCount = 0;
     const resultMessages = [];
@@ -2237,7 +2237,7 @@ async function batchVerifyAntigravityProjectIds() {
         if (result.success) {
             successCount++;
             const creditSuffix = result.creditAmount !== undefined && result.creditAmount !== null
-                ? ` (积分: ${result.creditAmount})`
+                ? ` (créditos: ${result.creditAmount})`
                 : '';
             resultMessages.push(`✅ ${result.filename}: ${result.projectId}${creditSuffix}`);
         } else {
@@ -2248,17 +2248,17 @@ async function batchVerifyAntigravityProjectIds() {
 
     await AppState.antigravityCreds.refresh();
 
-    const summary = `Antigravity批量检验完成！\n\n成功: ${successCount} 个\n失败: ${failCount} 个\n总计: ${selectedFiles.length} 个\n\n详细结果:\n${resultMessages.join('\n')}`;
+    const summary = `Verificación por lotes de Antigravity completada.\n\nCorrectas: ${successCount}\nFallidas: ${failCount}\nTotal: ${selectedFiles.length}\n\nResultados detallados:\n${resultMessages.join('\n')}`;
 
     if (failCount === 0) {
-        showStatus(`✅ 全部检验成功！成功检验 ${successCount}/${selectedFiles.length} 个Antigravity凭证`, 'success');
-        showMessageModal('Antigravity批量检验完成', summary, 'success');
+        showStatus(`✅ Todas las verificaciones son correctas: ${successCount}/${selectedFiles.length} credenciales de Antigravity`, 'success');
+        showMessageModal('Verificación por lotes de Antigravity completada', summary, 'success');
     } else if (successCount === 0) {
-        showStatus(`❌ 全部检验失败！失败 ${failCount}/${selectedFiles.length} 个Antigravity凭证`, 'error');
-        showMessageModal('Antigravity批量检验完成', summary, 'error');
+        showStatus(`❌ Todas las verificaciones han fallado: ${failCount}/${selectedFiles.length} credenciales de Antigravity`, 'error');
+        showMessageModal('Verificación por lotes de Antigravity completada', summary, 'error');
     } else {
-        showStatus(`⚠️ 批量检验完成：成功 ${successCount}/${selectedFiles.length} 个，失败 ${failCount} 个`, 'info');
-        showMessageModal('Antigravity批量检验完成', summary, 'info');
+        showStatus(`⚠️ Verificación por lotes completada: ${successCount}/${selectedFiles.length} correctas, ${failCount} fallidas`, 'info');
+        showMessageModal('Verificación por lotes de Antigravity completada', summary, 'info');
     }
 
     console.log(summary);
@@ -2267,18 +2267,18 @@ async function batchVerifyAntigravityProjectIds() {
 async function batchConfigurePreview() {
     const selectedFiles = Array.from(AppState.creds.selectedFiles);
     if (selectedFiles.length === 0) {
-        showStatus('❌ 请先选择要配置Preview的凭证', 'error');
-        showMessageModal('提示', '请先选择要配置Preview的凭证', 'error');
+        showStatus('❌ Selecciona primero las credenciales en las que quieres configurar Preview', 'error');
+        showMessageModal('Aviso', 'Selecciona primero las credenciales en las que quieres configurar Preview', 'error');
         return;
     }
 
-    if (!confirm(`确定要为 ${selectedFiles.length} 个凭证批量设置Preview通道吗？\n\n将并行配置以加快速度。`)) {
+    if (!confirm(`¿Seguro que quieres configurar el canal Preview en ${selectedFiles.length} credenciales?\n\nLa configuración se hará en paralelo para acelerarla.`)) {
         return;
     }
 
-    showStatus(`🔧 正在为 ${selectedFiles.length} 个凭证配置Preview通道，请稍候...`, 'info');
+    showStatus(`🔧 Configurando el canal Preview en ${selectedFiles.length} credenciales, espera un momento...`, 'info');
 
-    // 并行执行所有配置请求
+    // Lanzar todas las peticiones de configuración en paralelo
     const promises = selectedFiles.map(async (filename) => {
         try {
             const response = await fetch(`./creds/configure-preview/${encodeURIComponent(filename)}`, {
@@ -2299,7 +2299,7 @@ async function batchConfigurePreview() {
                 return {
                     success: false,
                     filename,
-                    error: data.message || '配置失败',
+                    error: data.message || 'Error de configuración',
                     step: data.step,
                     errorDetail: data.error
                 };
@@ -2309,10 +2309,10 @@ async function batchConfigurePreview() {
         }
     });
 
-    // 等待所有请求完成
+    // Esperar a que terminen todas las peticiones
     const results = await Promise.all(promises);
 
-    // 统计结果
+    // Resumen de resultados
     let successCount = 0;
     let failCount = 0;
     const resultMessages = [];
@@ -2320,27 +2320,27 @@ async function batchConfigurePreview() {
     results.forEach(result => {
         if (result.success) {
             successCount++;
-            resultMessages.push(`✅ ${result.filename}: ${result.message || '配置成功'}`);
+            resultMessages.push(`✅ ${result.filename}: ${result.message || 'Configuración correcta'}`);
         } else {
             failCount++;
-            const errorMsg = result.step ? `${result.error} (步骤: ${result.step})` : result.error;
+            const errorMsg = result.step ? `${result.error} (paso: ${result.step})` : result.error;
             resultMessages.push(`❌ ${result.filename}: ${errorMsg}`);
         }
     });
 
     await AppState.creds.refresh();
 
-    const summary = `批量配置Preview通道完成！\n\n成功: ${successCount} 个\n失败: ${failCount} 个\n总计: ${selectedFiles.length} 个\n\n详细结果:\n${resultMessages.join('\n')}`;
+    const summary = `Configuración por lotes del canal Preview completada.\n\nCorrectas: ${successCount}\nFallidas: ${failCount}\nTotal: ${selectedFiles.length}\n\nResultados detallados:\n${resultMessages.join('\n')}`;
 
     if (failCount === 0) {
-        showStatus(`✅ 全部配置成功！成功配置 ${successCount}/${selectedFiles.length} 个凭证的Preview通道`, 'success');
-        showMessageModal('批量配置Preview通道完成', summary, 'success');
+        showStatus(`✅ Todas las configuraciones son correctas: canal Preview configurado en ${successCount}/${selectedFiles.length} credenciales`, 'success');
+        showMessageModal('Configuración por lotes del canal Preview completada', summary, 'success');
     } else if (successCount === 0) {
-        showStatus(`❌ 全部配置失败！失败 ${failCount}/${selectedFiles.length} 个凭证`, 'error');
-        showMessageModal('批量配置Preview通道完成', summary, 'error');
+        showStatus(`❌ Todas las configuraciones han fallado: ${failCount}/${selectedFiles.length} credenciales`, 'error');
+        showMessageModal('Configuración por lotes del canal Preview completada', summary, 'error');
     } else {
-        showStatus(`⚠️ 批量配置完成：成功 ${successCount}/${selectedFiles.length} 个，失败 ${failCount} 个`, 'info');
-        showMessageModal('批量配置Preview通道完成', summary, 'info');
+        showStatus(`⚠️ Configuración por lotes completada: ${successCount}/${selectedFiles.length} correctas, ${failCount} fallidas`, 'info');
+        showMessageModal('Configuración por lotes del canal Preview completada', summary, 'info');
     }
 
     console.log(summary);
@@ -2348,115 +2348,115 @@ async function batchConfigurePreview() {
 
 
 async function refreshAllEmails() {
-    if (!confirm('确定要刷新所有凭证的用户邮箱吗？这可能需要一些时间。')) return;
+    if (!confirm('¿Seguro que quieres actualizar el correo de usuario de todas las credenciales? Puede tardar un rato.')) return;
 
     try {
-        showStatus('正在刷新所有用户邮箱...', 'info');
+        showStatus('Actualizando todos los correos de usuario...', 'info');
         const response = await fetch('./creds/refresh-all-emails', {
             method: 'POST',
             headers: getAuthHeaders()
         });
         const data = await response.json();
         if (response.ok) {
-            showStatus(`邮箱刷新完成：成功获取 ${data.success_count}/${data.total_count} 个邮箱地址`, 'success');
+            showStatus(`Actualización de correos completada: ${data.success_count}/${data.total_count} direcciones obtenidas`, 'success');
             await AppState.creds.refresh();
         } else {
-            showStatus(data.message || '邮箱刷新失败', 'error');
+            showStatus(data.message || 'Error al actualizar los correos', 'error');
         }
     } catch (error) {
-        showStatus(`邮箱刷新网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red al actualizar los correos: ${error.message}`, 'error');
     }
 }
 
 async function refreshAllAntigravityEmails() {
-    if (!confirm('确定要刷新所有Antigravity凭证的用户邮箱吗？这可能需要一些时间。')) return;
+    if (!confirm('¿Seguro que quieres actualizar el correo de usuario de todas las credenciales de Antigravity? Puede tardar un rato.')) return;
 
     try {
-        showStatus('正在刷新所有用户邮箱...', 'info');
+        showStatus('Actualizando todos los correos de usuario...', 'info');
         const response = await fetch('./creds/refresh-all-emails?mode=antigravity', {
             method: 'POST',
             headers: getAuthHeaders()
         });
         const data = await response.json();
         if (response.ok) {
-            showStatus(`邮箱刷新完成：成功获取 ${data.success_count}/${data.total_count} 个邮箱地址`, 'success');
+            showStatus(`Actualización de correos completada: ${data.success_count}/${data.total_count} direcciones obtenidas`, 'success');
             await AppState.antigravityCreds.refresh();
         } else {
-            showStatus(data.message || '邮箱刷新失败', 'error');
+            showStatus(data.message || 'Error al actualizar los correos', 'error');
         }
     } catch (error) {
-        showStatus(`邮箱刷新网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red al actualizar los correos: ${error.message}`, 'error');
     }
 }
 
 async function deduplicateByEmail() {
-    if (!confirm('确定要对凭证进行凭证一键去重吗？\n\n相同邮箱的凭证只保留一个，其他将被删除。\n此操作不可撤销！')) return;
+    if (!confirm('¿Seguro que quieres eliminar las credenciales duplicadas?\n\nSolo se conservará una credencial por correo; las demás se eliminarán.\nEsta operación no se puede deshacer.')) return;
 
     try {
-        showStatus('正在进行凭证一键去重...', 'info');
+        showStatus('Eliminando las credenciales duplicadas...', 'info');
         const response = await fetch('./creds/deduplicate-by-email', {
             method: 'POST',
             headers: getAuthHeaders()
         });
         const data = await response.json();
         if (response.ok) {
-            const msg = `去重完成：删除 ${data.deleted_count} 个重复凭证，保留 ${data.kept_count} 个凭证（${data.unique_emails_count} 个唯一邮箱）`;
+            const msg = `Deduplicación completada: ${data.deleted_count} credenciales duplicadas eliminadas, ${data.kept_count} conservadas (${data.unique_emails_count} correos únicos)`;
             showStatus(msg, 'success');
             await AppState.creds.refresh();
             
-            // 显示详细信息
+            // Mostrar la información detallada
             if (data.duplicate_groups && data.duplicate_groups.length > 0) {
-                let details = '去重详情：\n\n';
+                let details = 'Detalle de la deduplicación:\n\n';
                 data.duplicate_groups.forEach(group => {
-                    details += `邮箱: ${group.email}\n保留: ${group.kept_file}\n删除: ${group.deleted_files.join(', ')}\n\n`;
+                    details += `Correo: ${group.email}\nConservado: ${group.kept_file}\nEliminados: ${group.deleted_files.join(', ')}\n\n`;
                 });
                 console.log(details);
             }
         } else {
-            showStatus(data.message || '去重失败', 'error');
+            showStatus(data.message || 'Error en la deduplicación', 'error');
         }
     } catch (error) {
-        showStatus(`去重网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red en la deduplicación: ${error.message}`, 'error');
     }
 }
 
 async function deduplicateAntigravityByEmail() {
-    if (!confirm('确定要对Antigravity凭证进行凭证一键去重吗？\n\n相同邮箱的凭证只保留一个，其他将被删除。\n此操作不可撤销！')) return;
+    if (!confirm('¿Seguro que quieres eliminar las credenciales de Antigravity duplicadas?\n\nSolo se conservará una credencial por correo; las demás se eliminarán.\nEsta operación no se puede deshacer.')) return;
 
     try {
-        showStatus('正在进行凭证一键去重...', 'info');
+        showStatus('Eliminando las credenciales duplicadas...', 'info');
         const response = await fetch('./creds/deduplicate-by-email?mode=antigravity', {
             method: 'POST',
             headers: getAuthHeaders()
         });
         const data = await response.json();
         if (response.ok) {
-            const msg = `去重完成：删除 ${data.deleted_count} 个重复凭证，保留 ${data.kept_count} 个凭证（${data.unique_emails_count} 个唯一邮箱）`;
+            const msg = `Deduplicación completada: ${data.deleted_count} credenciales duplicadas eliminadas, ${data.kept_count} conservadas (${data.unique_emails_count} correos únicos)`;
             showStatus(msg, 'success');
             await AppState.antigravityCreds.refresh();
             
-            // 显示详细信息
+            // Mostrar la información detallada
             if (data.duplicate_groups && data.duplicate_groups.length > 0) {
-                let details = '去重详情：\n\n';
+                let details = 'Detalle de la deduplicación:\n\n';
                 data.duplicate_groups.forEach(group => {
-                    details += `邮箱: ${group.email}\n保留: ${group.kept_file}\n删除: ${group.deleted_files.join(', ')}\n\n`;
+                    details += `Correo: ${group.email}\nConservado: ${group.kept_file}\nEliminados: ${group.deleted_files.join(', ')}\n\n`;
                 });
                 console.log(details);
             }
         } else {
-            showStatus(data.message || '去重失败', 'error');
+            showStatus(data.message || 'Error en la deduplicación', 'error');
         }
     } catch (error) {
-        showStatus(`去重网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red en la deduplicación: ${error.message}`, 'error');
     }
 }
 
 // =====================================================================
-// WebSocket日志相关
+// Registros por WebSocket
 // =====================================================================
 function connectWebSocket() {
     if (AppState.logWebSocket && AppState.logWebSocket.readyState === WebSocket.OPEN) {
-        showStatus('WebSocket已经连接', 'info');
+        showStatus('El WebSocket ya está conectado', 'info');
         return;
     }
 
@@ -2464,18 +2464,18 @@ function connectWebSocket() {
         const wsPath = new URL('./logs/stream', window.location.href).href;
         const wsUrl = wsPath.replace(/^http/, 'ws');
 
-        // 添加 token 认证参数
+        // Añadir el parámetro de autenticación token
         const wsUrlWithAuth = `${wsUrl}?token=${encodeURIComponent(AppState.authToken)}`;
 
-        document.getElementById('connectionStatusText').textContent = '连接中...';
+        document.getElementById('connectionStatusText').textContent = 'Conectando...';
         document.getElementById('logConnectionStatus').className = 'status info';
 
         AppState.logWebSocket = new WebSocket(wsUrlWithAuth);
 
         AppState.logWebSocket.onopen = () => {
-            document.getElementById('connectionStatusText').textContent = '已连接';
+            document.getElementById('connectionStatusText').textContent = 'Conectado';
             document.getElementById('logConnectionStatus').className = 'status success';
-            showStatus('日志流连接成功', 'success');
+            showStatus('Conexión al flujo de registros establecida', 'success');
             clearLogsDisplay();
         };
 
@@ -2495,19 +2495,19 @@ function connectWebSocket() {
         };
 
         AppState.logWebSocket.onclose = () => {
-            document.getElementById('connectionStatusText').textContent = '连接断开';
+            document.getElementById('connectionStatusText').textContent = 'Conexión cerrada';
             document.getElementById('logConnectionStatus').className = 'status error';
-            showStatus('日志流连接断开', 'info');
+            showStatus('Se ha cerrado la conexión al flujo de registros', 'info');
         };
 
         AppState.logWebSocket.onerror = (error) => {
-            document.getElementById('connectionStatusText').textContent = '连接错误';
+            document.getElementById('connectionStatusText').textContent = 'Error de conexión';
             document.getElementById('logConnectionStatus').className = 'status error';
-            showStatus('日志流连接错误: ' + error, 'error');
+            showStatus('Error de conexión al flujo de registros: ' + error, 'error');
         };
     } catch (error) {
-        showStatus('创建WebSocket连接失败: ' + error.message, 'error');
-        document.getElementById('connectionStatusText').textContent = '连接失败';
+        showStatus('Error al crear la conexión WebSocket: ' + error.message, 'error');
+        document.getElementById('connectionStatusText').textContent = 'Error de conexión';
         document.getElementById('logConnectionStatus').className = 'status error';
     }
 }
@@ -2516,16 +2516,16 @@ function disconnectWebSocket() {
     if (AppState.logWebSocket) {
         AppState.logWebSocket.close();
         AppState.logWebSocket = null;
-        document.getElementById('connectionStatusText').textContent = '未连接';
+        document.getElementById('connectionStatusText').textContent = 'Sin conexión';
         document.getElementById('logConnectionStatus').className = 'status info';
-        showStatus('日志流连接已断开', 'info');
+        showStatus('Conexión al flujo de registros cerrada', 'info');
     }
 }
 
 function clearLogsDisplay() {
     AppState.allLogs = [];
     AppState.filteredLogs = [];
-    document.getElementById('logContent').textContent = '日志已清空，等待新日志...';
+    document.getElementById('logContent').textContent = 'Registros vaciados; esperando nuevos registros...';
 }
 
 async function downloadLogs() {
@@ -2548,13 +2548,13 @@ async function downloadLogs() {
             a.click();
             window.URL.revokeObjectURL(url);
 
-            showStatus(`日志文件下载成功: ${filename}`, 'success');
+            showStatus(`Archivo de registros descargado correctamente: ${filename}`, 'success');
         } else {
             const data = await response.json();
-            showStatus(`下载日志失败: ${data.detail || data.error || '未知错误'}`, 'error');
+            showStatus(`Error al descargar los registros: ${data.detail || data.error || 'Error desconocido'}`, 'error');
         }
     } catch (error) {
-        showStatus(`下载日志时网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red al descargar los registros: ${error.message}`, 'error');
     }
 }
 
@@ -2571,11 +2571,11 @@ async function clearLogs() {
             clearLogsDisplay();
             showStatus(data.message, 'success');
         } else {
-            showStatus(`清空日志失败: ${data.detail || data.error || '未知错误'}`, 'error');
+            showStatus(`Error al vaciar los registros: ${data.detail || data.error || 'Error desconocido'}`, 'error');
         }
     } catch (error) {
         clearLogsDisplay();
-        showStatus(`清空日志时网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red al vaciar los registros: ${error.message}`, 'error');
     }
 }
 
@@ -2596,14 +2596,14 @@ function displayLogs() {
     const logContent = document.getElementById('logContent');
     if (AppState.filteredLogs.length === 0) {
         logContent.textContent = AppState.currentLogFilter === 'all' ?
-            '暂无日志...' : `暂无${AppState.currentLogFilter}级别的日志...`;
+            'No hay registros...' : `No hay registros de nivel ${AppState.currentLogFilter}...`;
     } else {
         logContent.textContent = AppState.filteredLogs.join('\n');
     }
 }
 
 // =====================================================================
-// 环境变量凭证管理
+// Gestión de credenciales por variables de entorno
 // =====================================================================
 async function checkEnvCredsStatus() {
     const loading = document.getElementById('envStatusLoading');
@@ -2620,26 +2620,26 @@ async function checkEnvCredsStatus() {
             const envVarsList = document.getElementById('envVarsList');
             envVarsList.textContent = Object.keys(data.available_env_vars).length > 0
                 ? Object.keys(data.available_env_vars).join(', ')
-                : '未找到GCLI_CREDS_*环境变量';
+                : 'No se han encontrado variables de entorno GCLI_CREDS_*';
 
             const autoLoadStatus = document.getElementById('autoLoadStatus');
-            autoLoadStatus.textContent = data.auto_load_enabled ? '✅ 已启用' : '❌ 未启用';
+            autoLoadStatus.textContent = data.auto_load_enabled ? '✅ Habilitado' : '❌ Deshabilitado';
             autoLoadStatus.style.color = data.auto_load_enabled ? '#28a745' : '#dc3545';
 
-            document.getElementById('envFilesCount').textContent = `${data.existing_env_files_count} 个文件`;
+            document.getElementById('envFilesCount').textContent = `${data.existing_env_files_count} archivos`;
 
             const envFilesList = document.getElementById('envFilesList');
             envFilesList.textContent = data.existing_env_files.length > 0
                 ? data.existing_env_files.join(', ')
-                : '无';
+                : 'Ninguno';
 
             content.classList.remove('hidden');
-            showStatus('环境变量状态检查完成', 'success');
+            showStatus('Comprobación del estado de las variables de entorno completada', 'success');
         } else {
-            showStatus(`获取环境变量状态失败: ${data.detail || data.error || '未知错误'}`, 'error');
+            showStatus(`Error al obtener el estado de las variables de entorno: ${data.detail || data.error || 'Error desconocido'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     } finally {
         loading.style.display = 'none';
     }
@@ -2647,7 +2647,7 @@ async function checkEnvCredsStatus() {
 
 async function loadEnvCredentials() {
     try {
-        showStatus('正在从环境变量导入凭证...', 'info');
+        showStatus('Importando credenciales desde las variables de entorno...', 'info');
 
         const response = await fetch('./auth/load-env-creds', {
             method: 'POST',
@@ -2658,26 +2658,26 @@ async function loadEnvCredentials() {
 
         if (response.ok) {
             if (data.loaded_count > 0) {
-                showStatus(`✅ 成功导入 ${data.loaded_count}/${data.total_count} 个凭证文件`, 'success');
+                showStatus(`✅ Se han importado ${data.loaded_count}/${data.total_count} archivos de credenciales`, 'success');
                 setTimeout(() => checkEnvCredsStatus(), 1000);
             } else {
                 showStatus(`⚠️ ${data.message}`, 'info');
             }
         } else {
-            showStatus(`导入失败: ${data.detail || data.error || '未知错误'}`, 'error');
+            showStatus(`Error al importar: ${data.detail || data.error || 'Error desconocido'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     }
 }
 
 async function clearEnvCredentials() {
-    if (!confirm('确定要清除所有从环境变量导入的凭证文件吗？\n这将删除所有文件名以 "env-" 开头的认证文件。')) {
+    if (!confirm('¿Seguro que quieres borrar todos los archivos de credenciales importados desde variables de entorno?\nSe eliminarán todos los archivos de autenticación cuyo nombre empiece por "env-".')) {
         return;
     }
 
     try {
-        showStatus('正在清除环境变量凭证文件...', 'info');
+        showStatus('Borrando los archivos de credenciales de variables de entorno...', 'info');
 
         const response = await fetch('./auth/env-creds', {
             method: 'DELETE',
@@ -2687,18 +2687,18 @@ async function clearEnvCredentials() {
         const data = await response.json();
 
         if (response.ok) {
-            showStatus(`✅ 成功删除 ${data.deleted_count} 个环境变量凭证文件`, 'success');
+            showStatus(`✅ Se han eliminado ${data.deleted_count} archivos de credenciales de variables de entorno`, 'success');
             setTimeout(() => checkEnvCredsStatus(), 1000);
         } else {
-            showStatus(`清除失败: ${data.detail || data.error || '未知错误'}`, 'error');
+            showStatus(`Error al borrar: ${data.detail || data.error || 'Error desconocido'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     }
 }
 
 // =====================================================================
-// 配置管理
+// Gestión de la configuración
 // =====================================================================
 async function loadConfig() {
     const loading = document.getElementById('configLoading');
@@ -2717,12 +2717,12 @@ async function loadConfig() {
 
             populateConfigForm();
             form.classList.remove('hidden');
-            showStatus('配置加载成功', 'success');
+            showStatus('Configuración cargada correctamente', 'success');
         } else {
-            showStatus(`加载配置失败: ${data.detail || data.error || '未知错误'}`, 'error');
+            showStatus(`Error al cargar la configuración: ${data.detail || data.error || 'Error desconocido'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     } finally {
         loading.style.display = 'none';
     }
@@ -2825,14 +2825,14 @@ async function saveConfig() {
         const data = await response.json();
 
         if (response.ok) {
-            let message = '配置保存成功';
+            let message = 'Configuración guardada correctamente';
 
             if (data.hot_updated && data.hot_updated.length > 0) {
-                message += `，以下配置已立即生效: ${data.hot_updated.join(', ')}`;
+                message += `. Los siguientes ajustes se han aplicado de inmediato: ${data.hot_updated.join(', ')}`;
             }
 
             if (data.restart_required && data.restart_required.length > 0) {
-                message += `\n⚠️ 重启提醒: ${data.restart_notice}`;
+                message += `\n⚠️ Aviso de reinicio: ${data.restart_notice}`;
                 showStatus(message, 'info');
             } else {
                 showStatus(message, 'success');
@@ -2840,14 +2840,14 @@ async function saveConfig() {
 
             setTimeout(() => loadConfig(), 1000);
         } else {
-            showStatus(`保存配置失败: ${data.detail || data.error || '未知错误'}`, 'error');
+            showStatus(`Error al guardar la configuración: ${data.detail || data.error || 'Error desconocido'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     }
 }
 
-// 镜像网址配置
+// Configuración de las URL espejo
 const mirrorUrls = {
     codeAssistEndpoint: 'https://gcli-api.sukaka.top/cloudcode-pa',
     oauthProxyUrl: 'https://gcli-api.sukaka.top/oauth2',
@@ -2867,27 +2867,27 @@ const officialUrls = {
 };
 
 function useMirrorUrls() {
-    if (confirm('确定要将所有端点配置为镜像网址吗？')) {
+    if (confirm('¿Seguro que quieres configurar todos los endpoints con las URL espejo?')) {
         for (const [fieldId, url] of Object.entries(mirrorUrls)) {
             const field = document.getElementById(fieldId);
             if (field && !field.disabled) field.value = url;
         }
-        showStatus('✅ 已切换到镜像网址配置，记得点击"保存配置"按钮保存设置', 'success');
+        showStatus('✅ Se han aplicado las URL espejo. Recuerda pulsar el botón "Guardar configuración" para guardar los ajustes', 'success');
     }
 }
 
 function restoreOfficialUrls() {
-    if (confirm('确定要将所有端点配置为官方地址吗？')) {
+    if (confirm('¿Seguro que quieres configurar todos los endpoints con las direcciones oficiales?')) {
         for (const [fieldId, url] of Object.entries(officialUrls)) {
             const field = document.getElementById(fieldId);
             if (field && !field.disabled) field.value = url;
         }
-        showStatus('✅ 已切换到官方端点配置，记得点击"保存配置"按钮保存设置', 'success');
+        showStatus('✅ Se han aplicado los endpoints oficiales. Recuerda pulsar el botón "Guardar configuración" para guardar los ajustes', 'success');
     }
 }
 
 // =====================================================================
-// 使用统计
+// Estadísticas de uso
 // =====================================================================
 async function refreshUsageStats() {
     const loading = document.getElementById('usageLoading');
@@ -2903,7 +2903,7 @@ async function refreshUsageStats() {
         ]);
 
         if (statsResponse.status === 401 || aggregatedResponse.status === 401) {
-            showStatus('认证失败，请重新登录', 'error');
+            showStatus('Error de autenticación; vuelve a iniciar sesión', 'error');
             setTimeout(() => location.reload(), 1500);
             return;
         }
@@ -2921,13 +2921,13 @@ async function refreshUsageStats() {
 
             renderUsageList();
 
-            showStatus(`已加载 ${aggData.total_files || Object.keys(AppState.usageStatsData).length} 个文件的使用统计`, 'success');
+            showStatus(`Estadísticas de uso cargadas de ${aggData.total_files || Object.keys(AppState.usageStatsData).length} archivos`, 'success');
         } else {
-            const errorMsg = statsData.detail || aggregatedData.detail || '加载使用统计失败';
-            showStatus(`错误: ${errorMsg}`, 'error');
+            const errorMsg = statsData.detail || aggregatedData.detail || 'Error al cargar las estadísticas de uso';
+            showStatus(`Error: ${errorMsg}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     } finally {
         loading.style.display = 'none';
     }
@@ -2938,7 +2938,7 @@ function renderUsageList() {
     list.innerHTML = '';
 
     if (Object.keys(AppState.usageStatsData).length === 0) {
-        list.innerHTML = '<p style="text-align: center; color: #666;">暂无使用统计数据</p>';
+        list.innerHTML = '<p style="text-align: center; color: #666;">No hay estadísticas de uso</p>';
         return;
     }
 
@@ -2954,12 +2954,12 @@ function renderUsageList() {
             </div>
             <div class="usage-info">
                 <div class="usage-info-item" style="grid-column: 1 / -1;">
-                    <span class="usage-info-label">24小时内调用次数</span>
+                    <span class="usage-info-label">Llamadas en las últimas 24 h</span>
                     <span class="usage-info-value" style="font-size: 24px; font-weight: bold; color: #007bff;">${calls24h}</span>
                 </div>
             </div>
             <div class="usage-actions">
-                <button class="usage-btn reset" onclick="resetSingleUsageStats('${filename}')">重置统计</button>
+                <button class="usage-btn reset" onclick="resetSingleUsageStats('${filename}')">Restablecer estadísticas</button>
             </div>
         `;
 
@@ -2968,7 +2968,7 @@ function renderUsageList() {
 }
 
 async function resetSingleUsageStats(filename) {
-    if (!confirm(`确定要重置 ${filename} 的使用统计吗？`)) return;
+    if (!confirm(`¿Seguro que quieres restablecer las estadísticas de uso de ${filename}?`)) return;
 
     try {
         const response = await fetch('./usage/reset', {
@@ -2983,15 +2983,15 @@ async function resetSingleUsageStats(filename) {
             showStatus(data.message, 'success');
             await refreshUsageStats();
         } else {
-            showStatus(`重置失败: ${data.message || data.detail || data.error || '未知错误'}`, 'error');
+            showStatus(`Error al restablecer: ${data.message || data.detail || data.error || 'Error desconocido'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     }
 }
 
 async function resetAllUsageStats() {
-    if (!confirm('确定要重置所有文件的使用统计吗？此操作不可恢复！')) return;
+    if (!confirm('¿Seguro que quieres restablecer las estadísticas de uso de todos los archivos? Esta operación no se puede deshacer.')) return;
 
     try {
         const response = await fetch('./usage/reset', {
@@ -3006,15 +3006,15 @@ async function resetAllUsageStats() {
             showStatus(data.message, 'success');
             await refreshUsageStats();
         } else {
-            showStatus(`重置失败: ${data.message || data.detail || data.error || '未知错误'}`, 'error');
+            showStatus(`Error al restablecer: ${data.message || data.detail || data.error || 'Error desconocido'}`, 'error');
         }
     } catch (error) {
-        showStatus(`网络错误: ${error.message}`, 'error');
+        showStatus(`Error de red: ${error.message}`, 'error');
     }
 }
 
 // =====================================================================
-// 冷却倒计时自动更新
+// Actualización automática de la cuenta atrás de enfriamiento
 // =====================================================================
 function startCooldownTimer() {
     if (AppState.cooldownTimerInterval) {
@@ -3036,7 +3036,7 @@ function stopCooldownTimer() {
 function updateCooldownDisplays() {
     let needsRefresh = false;
 
-    // 检查模型级冷却是否过期
+    // Comprobar si el enfriamiento por modelo ha expirado
     for (const credInfo of Object.values(AppState.creds.data)) {
         if (credInfo.model_cooldowns && Object.keys(credInfo.model_cooldowns).length > 0) {
             const currentTime = Date.now() / 1000;
@@ -3054,7 +3054,7 @@ function updateCooldownDisplays() {
         return;
     }
 
-    // 更新模型级冷却的显示
+    // Actualizar la visualización del enfriamiento por modelo
     document.querySelectorAll('.cooldown-badge').forEach(badge => {
         const card = badge.closest('.cred-card');
         const filenameEl = card?.querySelector('.cred-filename');
@@ -3065,7 +3065,7 @@ function updateCooldownDisplays() {
 
         if (credInfo && credInfo.model_cooldowns) {
             const currentTime = Date.now() / 1000;
-            const titleMatch = badge.getAttribute('title')?.match(/模型: (.+)/);
+            const titleMatch = badge.getAttribute('title')?.match(/Modelo: (.+)/);
             if (titleMatch) {
                 const model = titleMatch[1];
                 const cooldownUntil = credInfo.model_cooldowns[model];
@@ -3084,10 +3084,10 @@ function updateCooldownDisplays() {
 }
 
 // =====================================================================
-// 版本信息管理
+// Gestión de la información de versión
 // =====================================================================
 
-// 获取并显示版本信息（不检查更新）
+// Obtiene y muestra la información de versión (sin comprobar actualizaciones)
 async function fetchAndDisplayVersion() {
     try {
         const response = await fetch('./version/info');
@@ -3096,24 +3096,24 @@ async function fetchAndDisplayVersion() {
         const versionText = document.getElementById('versionText');
 
         if (data.success) {
-            // 只显示版本号
+            // Mostrar solo el número de versión
             versionText.textContent = `v${data.version}`;
-            versionText.title = `完整版本: ${data.full_hash}\n提交信息: ${data.message}\n提交时间: ${data.date}`;
+            versionText.title = `Versión completa: ${data.full_hash}\nMensaje del commit: ${data.message}\nFecha del commit: ${data.date}`;
             versionText.style.cursor = 'help';
         } else {
-            versionText.textContent = '未知版本';
-            versionText.title = data.error || '无法获取版本信息';
+            versionText.textContent = 'Versión desconocida';
+            versionText.title = data.error || 'No se ha podido obtener la información de versión';
         }
     } catch (error) {
-        console.error('获取版本信息失败:', error);
+        console.error('Error al obtener la información de versión:', error);
         const versionText = document.getElementById('versionText');
         if (versionText) {
-            versionText.textContent = '版本信息获取失败';
+            versionText.textContent = 'Error al obtener la versión';
         }
     }
 }
 
-// 检查更新
+// Comprobar actualizaciones
 async function checkForUpdates() {
     const checkBtn = document.getElementById('checkUpdateBtn');
     if (!checkBtn) return;
@@ -3121,70 +3121,70 @@ async function checkForUpdates() {
     const originalText = checkBtn.textContent;
 
     try {
-        // 显示检查中状态
-        checkBtn.textContent = '检查中...';
+        // Mostrar el estado de comprobación
+        checkBtn.textContent = 'Comprobando...';
         checkBtn.disabled = true;
 
-        // 调用API检查更新
+        // Llamar a la API para comprobar si hay actualizaciones
         const response = await fetch('./version/info?check_update=true');
         const data = await response.json();
 
         if (data.success) {
             if (data.check_update === false) {
-                // 检查更新失败
-                showStatus(`检查更新失败: ${data.update_error || '未知错误'}`, 'error');
+                // Error al comprobar actualizaciones
+                showStatus(`Error al comprobar actualizaciones: ${data.update_error || 'Error desconocido'}`, 'error');
             } else if (data.has_update === true) {
-                // 有更新
-                const updateMsg = `发现新版本！\n当前: v${data.version}\n最新: v${data.latest_version}\n\n更新内容: ${data.latest_message || '无'}`;
+                // Hay actualización
+                const updateMsg = `Hay una versión nueva.\nActual: v${data.version}\nÚltima: v${data.latest_version}\n\nNovedades: ${data.latest_message || 'ninguna'}`;
                 showStatus(updateMsg.replace(/\n/g, ' '), 'warning');
 
-                // 更新按钮样式
+                // Actualizar el estilo del botón
                 checkBtn.style.backgroundColor = '#ffc107';
-                checkBtn.textContent = '有新版本';
+                checkBtn.textContent = 'Nueva versión';
 
                 setTimeout(() => {
                     checkBtn.style.backgroundColor = '#17a2b8';
                     checkBtn.textContent = originalText;
                 }, 5000);
             } else if (data.has_update === false) {
-                // 已是最新
-                showStatus('已是最新版本！', 'success');
+                // Ya está en la última versión
+                showStatus('Ya tienes la última versión', 'success');
 
                 checkBtn.style.backgroundColor = '#28a745';
-                checkBtn.textContent = '已是最新';
+                checkBtn.textContent = 'Actualizado';
 
                 setTimeout(() => {
                     checkBtn.style.backgroundColor = '#17a2b8';
                     checkBtn.textContent = originalText;
                 }, 3000);
             } else {
-                // 无法确定
-                showStatus('无法确定是否有更新', 'info');
+                // No se ha podido determinar
+                showStatus('No se ha podido determinar si hay actualizaciones', 'info');
             }
         } else {
-            showStatus(`检查更新失败: ${data.error}`, 'error');
+            showStatus(`Error al comprobar actualizaciones: ${data.error}`, 'error');
         }
     } catch (error) {
-        console.error('检查更新失败:', error);
-        showStatus(`检查更新失败: ${error.message}`, 'error');
+        console.error('Error al comprobar actualizaciones:', error);
+        showStatus(`Error al comprobar actualizaciones: ${error.message}`, 'error');
     } finally {
         checkBtn.disabled = false;
-        if (checkBtn.textContent === '检查中...') {
+        if (checkBtn.textContent === 'Comprobando...') {
             checkBtn.textContent = originalText;
         }
     }
 }
 
 // =====================================================================
-// 页面初始化
+// Inicialización de la página
 // =====================================================================
 window.onload = async function () {
     const autoLoginSuccess = await autoLogin();
 
     if (!autoLoginSuccess) {
-        showStatus('请输入密码登录', 'info');
+        showStatus('Introduce la contraseña para iniciar sesión', 'info');
     } else {
-        // 登录成功后获取版本信息
+        // Obtener la información de versión tras iniciar sesión
         await fetchAndDisplayVersion();
     }
 
@@ -3196,7 +3196,7 @@ window.onload = async function () {
     }
 };
 
-// 拖拽功能 - 初始化
+// Arrastrar y soltar: inicialización
 document.addEventListener('DOMContentLoaded', function () {
     const uploadArea = document.getElementById('uploadArea');
 

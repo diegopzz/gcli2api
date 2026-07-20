@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GCLI2API 移动端控制面板</title>
+    <title>GCLI2API Panel de control móvil</title>
     <style>
         * {
             box-sizing: border-box;
@@ -105,7 +105,7 @@
             background-color: #c82333;
         }
 
-        /* 移动端优化的标签页 */
+        /* Pestañas optimizadas para móvil */
         .tabs {
             display: flex;
             background: linear-gradient(145deg, #f5f5f7, #e8e8ed);
@@ -124,7 +124,7 @@
             position: relative;
         }
 
-        /* 滑块指示器 */
+        /* Indicador deslizante */
         .tab-slider {
             position: absolute;
             top: 5px;
@@ -141,7 +141,7 @@
             pointer-events: none;
         }
 
-        /* 滑块微光效果 */
+        /* Efecto de brillo del deslizador */
         .tab-slider::after {
             content: '';
             position: absolute;
@@ -187,7 +187,7 @@
             overflow: hidden;
         }
 
-        /* 点击波纹效果 */
+        /* Efecto de onda al pulsar */
         .tab::before {
             content: '';
             position: absolute;
@@ -210,7 +210,7 @@
         .tab.active {
             color: #1a1a1a;
             font-weight: 550;
-            /* 背景和阴影由滑块提供 */
+            /* El fondo y la sombra los aporta el deslizador */
         }
 
         .tab:hover:not(.active) {
@@ -218,7 +218,7 @@
             color: #333;
         }
 
-        /* 按压效果 */
+        /* Efecto de pulsación */
         .tab:active {
             transform: scale(0.96);
             transition: transform 0.1s ease;
@@ -232,14 +232,14 @@
         .tab-content {
             display: none;
             padding: 10px 0;
-            /* 动画由 JavaScript 控制，避免冲突 */
+            /* La animación la controla JavaScript para evitar conflictos */
         }
 
         .tab-content.active {
             display: block;
         }
 
-        /* Toast 固定定位在右上角 */
+        /* Toast fijado en la esquina superior derecha */
         #statusSection {
             position: fixed;
             top: 10px;
@@ -252,7 +252,7 @@
             min-width: 200px;
         }
 
-        /* Toast 专用样式 - 只在 #statusSection 内生效 */
+        /* Estilos exclusivos del toast: solo dentro de #statusSection */
         #statusSection .status {
             padding: 10px 16px;
             border-radius: 8px;
@@ -298,7 +298,7 @@
             color: white;
         }
 
-        /* 页面内嵌的 status 样式 - 保持原有风格 */
+        /* Estilos de status incrustados en la pagina: se mantiene el estilo original */
         .status {
             padding: 12px;
             border-radius: 8px;
@@ -339,7 +339,7 @@
             padding: 40px 20px;
         }
 
-        /* 移动端优化的卡片样式 */
+        /* Estilos de tarjeta optimizados para móvil */
         .card {
             background-color: white;
             border: 1px solid #e1e4e8;
@@ -371,7 +371,7 @@
             margin-top: 10px;
         }
 
-        /* 移动端优化的统计样式 */
+        /* Estilos de estadísticas optimizados para móvil */
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -401,7 +401,7 @@
             margin-top: 4px;
         }
 
-        /* 移动端优化的进度条 */
+        /* Barra de progreso optimizada para móvil */
         .progress-bar {
             width: 100%;
             height: 8px;
@@ -417,7 +417,7 @@
             transition: width 0.3s ease;
         }
 
-        /* 移动端优化的模态框 */
+        /* Modal optimizado para móvil */
         .modal {
             display: none;
             position: fixed;
@@ -457,7 +457,7 @@
             color: #999;
         }
 
-        /* 响应式优化 */
+        /* Optimización responsive */
         @media (max-width: 768px) {
             .container {
                 padding: 5px;
@@ -560,7 +560,7 @@
             word-break: break-all;
         }
 
-        /* 文件管理卡片样式 */
+        /* Estilos de tarjeta de gestión de archivos */
         .cred-card {
             background-color: #f8f9fa;
             border: 1px solid #e1e4e8;
@@ -740,7 +740,7 @@
             overflow-y: auto;
         }
 
-        /* 额度信息显示样式 */
+        /* Estilos de visualización de la cuota */
         .cred-quota-details {
             margin-top: 10px;
             animation: slideDown 0.3s ease-out;
@@ -766,7 +766,7 @@
             box-shadow: 0 2px 8px rgba(23, 162, 184, 0.15);
         }
 
-        /* 批量操作按钮禁用状态 */
+        /* Estado deshabilitado de los botones de acción masiva */
         .btn-small:disabled {
             background-color: #e9ecef !important;
             color: #6c757d !important;
@@ -774,7 +774,7 @@
             opacity: 0.6;
         }
 
-        /* 批量操作控件优化 */
+        /* Optimización de los controles de acción masiva */
         .batch-controls-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -787,7 +787,7 @@
             }
         }
 
-        /* 文件卡片复选框区域优化 */
+        /* Optimización del área de casillas de la tarjeta de archivo */
         .file-selection-area {
             display: flex;
             align-items: flex-start;
@@ -804,7 +804,7 @@
             }
         }
 
-        /* 消息模态框样式 */
+        /* Estilos del modal de mensajes */
         .message-modal-overlay {
             position: fixed;
             top: 0;
@@ -941,7 +941,7 @@
             box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
         }
 
-        /* 消息中的链接样式 */
+        /* Estilos de los enlaces dentro de los mensajes */
         .message-link {
             color: #1976d2;
             text-decoration: none;
@@ -964,7 +964,7 @@
             transform: translateY(0);
         }
 
-        /* 移动端适配 */
+        /* Adaptación para móvil */
         @media (max-width: 768px) {
             .message-modal {
                 max-width: 95%;
@@ -990,110 +990,110 @@
 <body>
     <div class="container">
 
-        <!-- 登录界面 -->
+        <!-- Pantalla de inicio de sesión -->
         <div id="loginSection" class="login-form">
-            <h1>GCLI2API 移动端控制面板</h1>
-            <p>请输入访问密码：</p>
-            <input type="password" id="loginPassword" placeholder="输入密码" onkeypress="handlePasswordEnter(event)" />
+            <h1>GCLI2API Panel de control móvil</h1>
+            <p>Introduce la contraseña de acceso:</p>
+            <input type="password" id="loginPassword" placeholder="Contraseña" onkeypress="handlePasswordEnter(event)" />
             <br><br>
-            <button class="btn" onclick="login()">登录</button>
+            <button class="btn" onclick="login()">Iniciar sesión</button>
         </div>
 
-        <!-- 主界面 -->
+        <!-- Pantalla principal -->
         <div id="mainSection" class="hidden">
             <div
                 style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                    <h1 style="margin: 0; font-size: 20px;">GCLI2API 移动端控制面板</h1>
+                    <h1 style="margin: 0; font-size: 20px;">GCLI2API Panel de control móvil</h1>
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <span id="versionInfo" style="font-size: 11px; color: #666;">
-                            <span id="versionText">加载中...</span>
+                            <span id="versionText">Cargando...</span>
                         </span>
                         <button onclick="checkForUpdates()" id="checkUpdateBtn"
                             style="padding: 2px 8px; background-color: #17a2b8; color: white; border: none; border-radius: 3px; font-size: 10px; cursor: pointer; white-space: nowrap;">
-                            检查更新
+                            Buscar actualizaciones
                         </button>
                     </div>
                 </div>
                 <button onclick="logout()"
                     style="padding: 6px 15px; background-color: #dc3545; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; white-space: nowrap;">
-                    退出登录
+                    Cerrar sesión
                 </button>
             </div>
 
-            <!-- 移动端优化的标签页 -->
-            <!-- 移动端优化的标签页 -->
+            <!-- Pestañas optimizadas para móvil -->
+            <!-- Pestañas optimizadas para móvil -->
             <div class="tabs">
                 <div class="tab-slider"></div>
-                <button class="tab active" onclick="switchTab('oauth')">OAuth认证</button>
-                <button class="tab" onclick="switchTab('antigravity')">Antigravity认证</button>
-                <button class="tab" onclick="switchTab('upload')">批量上传</button>
-                <button class="tab" onclick="switchTab('manage')">GCLI凭证</button>
-                <button class="tab" onclick="switchTab('antigravity-manage')">AG凭证</button>
-                <button class="tab" onclick="switchTab('config')">配置管理</button>
-                <button class="tab" onclick="switchTab('logs')">实时日志</button>
-                <button class="tab" onclick="switchTab('about')">项目信息</button>
+                <button class="tab active" onclick="switchTab('oauth')">OAuth</button>
+                <button class="tab" onclick="switchTab('antigravity')">Antigravity</button>
+                <button class="tab" onclick="switchTab('upload')">Subida masiva</button>
+                <button class="tab" onclick="switchTab('manage')">Cred. GCLI</button>
+                <button class="tab" onclick="switchTab('antigravity-manage')">Cred. AG</button>
+                <button class="tab" onclick="switchTab('config')">Ajustes</button>
+                <button class="tab" onclick="switchTab('logs')">Registro</button>
+                <button class="tab" onclick="switchTab('about')">Proyecto</button>
             </div>
 
-            <!-- OAuth认证标签页 -->
+            <!-- Pestaña de autenticación OAuth -->
             <div id="oauthTab" class="tab-content active">
-                <!-- API 自动启用说明 -->
+                <!-- Aviso de activación automática de APIs -->
                 <div class="status success" style="margin-bottom: 20px;">
-                    <strong>✨ 自动化优化：</strong> 系统现在会在认证成功后自动为您的项目启用必需的API服务
+                    <strong>✨ Automatización:</strong> tras autenticarte, el sistema activa automáticamente en tu proyecto las APIs necesarias
                     <ul style="margin: 10px 0; padding-left: 20px; font-size: 13px;">
                         <li><strong>Gemini Cloud Assist API</strong></li>
                         <li><strong>Gemini for Google Cloud API</strong></li>
                     </ul>
                     <p style="margin: 10px 0; color: #155724; font-size: 13px;">
-                        <strong>说明：</strong>无需手动启用API，系统会自动处理这些配置步骤，让认证流程更加顺畅。
+                        <strong>Nota:</strong> no hace falta activar las APIs a mano; el sistema realiza estos pasos automáticamente.
                     </p>
                 </div>
 
-                <!-- 折叠式 Project ID 输入框 -->
+                <!-- Campo Project ID plegable -->
                 <div class="form-group">
                     <div style="cursor: pointer; user-select: none; padding: 12px; border: 2px solid #ddd; border-radius: 8px; background: #f8f8f8; display: flex; justify-content: space-between; align-items: center;"
                         onclick="toggleProjectIdSection()">
-                        <span style="font-weight: bold; color: #555; font-size: 14px;">📁 高级选项：Google Cloud Project ID
-                            (不用管，直接点击获取链接即可)</span>
+                        <span style="font-weight: bold; color: #555; font-size: 14px;">📁 Opciones avanzadas: Google Cloud Project ID
+                            (puedes ignorarlo y pulsar directamente en obtener enlace)</span>
                         <span id="projectIdToggleIcon"
                             style="font-size: 14px; color: #666; transition: transform 0.3s ease;">▶</span>
                     </div>
                     <div id="projectIdSection"
                         style="display: none; margin-top: 10px; padding: 12px; border: 2px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff;">
-                        <label for="projectId">Google Cloud Project ID (可选):</label>
-                        <input type="text" id="projectId" placeholder="留空将尝试自动检测，或手动输入项目ID" />
+                        <label for="projectId">Google Cloud Project ID (opcional):</label>
+                        <input type="text" id="projectId" placeholder="Déjalo vacío para autodetectar, o escribe el ID del proyecto" />
                         <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
-                            💡 提示：如果你不懂这是什么，可以留空此字段让系统自动检测项目ID
+                            💡 Consejo: si no sabes qué es, déjalo vacío y el sistema detectará el ID del proyecto
                         </small>
                     </div>
                 </div>
 
-                <button class="btn" id="getAuthBtn" onclick="startAuth()">获取认证链接</button>
+                <button class="btn" id="getAuthBtn" onclick="startAuth()">Obtener enlace de autenticación</button>
 
                 <div id="authUrlSection" class="hidden">
-                    <h4>认证链接：</h4>
+                    <h4>Enlace de autenticación:</h4>
                     <div
                         style="background-color: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 12px; margin: 15px 0; word-break: break-all;">
                         <a id="authUrl" href="#" target="_blank"
-                            style="color: #4285f4; text-decoration: none;">点击此链接进行认证</a>
+                            style="color: #4285f4; text-decoration: none;">Pulsa este enlace para autenticarte</a>
                     </div>
                     <div class="status info">
-                        <strong>重要说明：</strong>
+                        <strong>Importante:</strong>
                         <ol style="margin: 10px 0; padding-left: 20px; font-size: 13px;">
-                            <li>点击上方认证链接，会在新窗口中打开Google OAuth页面</li>
-                            <li>完成Google账号登录和授权</li>
-                            <li>授权成功后会跳转到localhost:11451显示成功页面</li>
-                            <li>关闭OAuth窗口，返回本页面</li>
-                            <li>点击下方"获取认证文件"按钮完成流程</li>
+                            <li>Pulsa el enlace de arriba; se abrirá la página de Google OAuth en una ventana nueva</li>
+                            <li>Inicia sesión con tu cuenta de Google y autoriza el acceso</li>
+                            <li>Tras autorizar, se redirigirá a localhost:11451 con una página de éxito</li>
+                            <li>Cierra la ventana de OAuth y vuelve a esta página</li>
+                            <li>Pulsa abajo en «Obtener archivo de credenciales» para terminar</li>
                         </ol>
                     </div>
 
-                    <!-- 快捷回调URL输入选项 -->
+                    <!-- Opción rápida: introducir la URL de callback -->
                     <div class="form-group"
                         style="margin: 20px 0; padding: 15px; border: 2px solid #e8f4fd; border-radius: 8px; background: #f8fcff;">
                         <div style="cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;"
                             onclick="toggleCallbackUrlSection()">
-                            <span style="font-weight: bold; color: #0066cc;">🚀 无法回源？试试快捷方式</span>
+                            <span style="font-weight: bold; color: #0066cc;">🚀 ¿No puedes volver al origen? Prueba el atajo</span>
                             <span id="callbackUrlToggleIcon"
                                 style="font-size: 14px; color: #666; transition: transform 0.3s ease;">▼</span>
                         </div>
@@ -1101,18 +1101,18 @@
                             <div
                                 style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
                                 <div style="color: #856404; font-size: 14px; font-weight: bold; margin-bottom: 6px;">📚
-                                    适用场景：</div>
+                                    Casos de uso:</div>
                                 <ul
                                     style="color: #856404; font-size: 13px; margin: 0; padding-left: 18px; line-height: 1.5;">
-                                    <li>云服务器、VPS等非本地环境</li>
-                                    <li>防火墙阻止了11451端口访问</li>
-                                    <li>网络环境无法正常回源到localhost</li>
-                                    <li>Docker容器内运行，端口映射问题</li>
+                                    <li>Servidores en la nube, VPS y otros entornos no locales</li>
+                                    <li>El cortafuegos bloquea el puerto 11451</li>
+                                    <li>La red no permite volver a localhost</li>
+                                    <li>Ejecución en Docker con problemas de mapeo de puertos</li>
                                 </ul>
                             </div>
                             <div style="color: #666; font-size: 13px; margin-bottom: 12px; line-height: 1.6;">
-                                <strong style="color: #0066cc;">🔍 什么是回调URL？</strong><br>
-                                完成Google OAuth授权后，浏览器地址栏显示的完整URL，通常看起来像这样：<br>
+                                <strong style="color: #0066cc;">🔍 ¿Qué es la URL de callback?</strong><br>
+                                Es la URL completa que aparece en la barra del navegador tras autorizar en Google OAuth; suele tener este aspecto:<br>
                                 <code
                                     style="background: #f1f3f4; padding: 2px 6px; border-radius: 3px; font-size: 12px; word-break: break-all;">
                                     http://localhost:11451/?state=abc123...&code=4/0AVMBsJ...&scope=email%20profile...
@@ -1121,69 +1121,69 @@
                             <div
                                 style="background: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
                                 <div style="color: #0066cc; font-size: 13px; font-weight: bold; margin-bottom: 4px;">📋
-                                    使用步骤：</div>
+                                    Pasos a seguir:</div>
                                 <ol
                                     style="color: #0066cc; font-size: 12px; margin: 0; padding-left: 18px; line-height: 1.4;">
-                                    <li>点击上方认证链接，完成Google授权</li>
-                                    <li>授权成功后，复制浏览器地址栏的<strong>完整URL</strong></li>
-                                    <li>粘贴到下方输入框，点击获取凭证即可</li>
+                                    <li>Pulsa el enlace de arriba y completa la autorización de Google</li>
+                                    <li>Tras autorizar, copia la <strong>URL completa</strong> de la barra del navegador</li>
+                                    <li>Pégala en el campo de abajo y pulsa en obtener credencial</li>
                                 </ol>
                             </div>
                             <div class="input-group">
                                 <input type="url" id="callbackUrlInput"
-                                    placeholder="粘贴完整的回调URL，例如：http://localhost:11451/?state=xxx&code=xxx&scope=xxx..."
+                                    placeholder="Pega la URL de callback completa, p. ej.: http://localhost:11451/?state=xxx&code=xxx&scope=xxx..."
                                     style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 13px;">
                             </div>
                             <button class="btn" style="margin-top: 10px;" onclick="processCallbackUrl()">
-                                从回调URL获取凭证
+                                Obtener credencial desde la URL
                             </button>
                         </div>
                     </div>
 
-                    <button class="btn" id="getCredsBtn" onclick="getCredentials()">获取认证文件</button>
+                    <button class="btn" id="getCredsBtn" onclick="getCredentials()">Obtener archivo de credenciales</button>
                 </div>
 
                 <div id="credentialsSection" class="hidden">
-                    <h4>认证文件内容：</h4>
+                    <h4>Contenido del archivo de credenciales:</h4>
                     <div style="background-color: #f0f8ff; border: 1px solid #b0d4ff; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 11px; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto;"
                         id="credentialsContent"></div>
                 </div>
             </div>
 
-            <!-- Antigravity 认证标签页 -->
+            <!-- Pestaña de autenticación Antigravity -->
             <div id="antigravityTab" class="tab-content">
                 <div class="status info" style="margin-bottom: 20px;">
-                    <strong>🚀 Antigravity 认证模式</strong>
+                    <strong>🚀 Modo de autenticación Antigravity</strong>
                     <p style="margin: 10px 0; font-size: 13px;">
-                        获取谷歌Antigravity 凭证
+                        Obtén credenciales de Google Antigravity
                     </p>
                 </div>
 
-                <button class="btn" id="getAntigravityAuthBtn">获取 Antigravity 认证链接</button>
+                <button class="btn" id="getAntigravityAuthBtn">Obtener enlace de Antigravity</button>
 
                 <div id="antigravityAuthUrlSection" class="hidden">
-                    <h4>Antigravity 认证链接：</h4>
+                    <h4>Enlace de autenticación de Antigravity:</h4>
                     <div
                         style="background-color: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 12px; margin: 15px 0; word-break: break-all;">
                         <a id="antigravityAuthUrl" href="#" target="_blank"
-                            style="color: #4285f4; text-decoration: none;">点击此链接进行认证</a>
+                            style="color: #4285f4; text-decoration: none;">Pulsa este enlace para autenticarte</a>
                     </div>
                     <div class="status info">
-                        <strong>使用说明：</strong>
+                        <strong>Instrucciones:</strong>
                         <ol style="margin: 10px 0; padding-left: 20px; font-size: 13px;">
-                            <li>点击上方认证链接，在新窗口中完成 Google 授权</li>
-                            <li>授权成功后会跳转到 localhost 显示成功页面</li>
-                            <li>关闭 OAuth 窗口，返回本页面</li>
-                            <li>点击下方"获取凭证"按钮完成流程</li>
+                            <li>Pulsa el enlace de arriba y completa la autorización de Google en la ventana nueva</li>
+                            <li>Tras autorizar, se redirigirá a localhost con una página de éxito</li>
+                            <li>Cierra la ventana de OAuth y vuelve a esta página</li>
+                            <li>Pulsa abajo en «Obtener credencial» para terminar</li>
                         </ol>
                     </div>
 
-                    <!-- 快捷回调URL输入选项 -->
+                    <!-- Opción rápida: introducir la URL de callback -->
                     <div class="form-group"
                         style="margin: 15px 0; padding: 12px; border: 2px solid #e8f4fd; border-radius: 8px; background: #f8fcff;">
                         <div style="cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;"
                             onclick="toggleAntigravityCallbackUrlSection()">
-                            <span style="font-weight: bold; color: #0066cc; font-size: 13px;">🚀 无法回源？试试快捷方式</span>
+                            <span style="font-weight: bold; color: #0066cc; font-size: 13px;">🚀 ¿No puedes volver al origen? Prueba el atajo</span>
                             <span id="antigravityCallbackUrlToggleIcon"
                                 style="font-size: 14px; color: #666; transition: transform 0.3s ease;">▼</span>
                         </div>
@@ -1191,18 +1191,18 @@
                             <div
                                 style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 10px; margin-bottom: 10px;">
                                 <div style="color: #856404; font-size: 12px; font-weight: bold; margin-bottom: 4px;">📚
-                                    适用场景：</div>
+                                    Casos de uso:</div>
                                 <ul
                                     style="color: #856404; font-size: 11px; margin: 0; padding-left: 16px; line-height: 1.4;">
-                                    <li>云服务器、VPS等非本地环境</li>
-                                    <li>防火墙阻止了11451端口访问</li>
-                                    <li>网络环境无法正常回源到localhost</li>
-                                    <li>Docker容器内运行，端口映射问题</li>
+                                    <li>Servidores en la nube, VPS y otros entornos no locales</li>
+                                    <li>El cortafuegos bloquea el puerto 11451</li>
+                                    <li>La red no permite volver a localhost</li>
+                                    <li>Ejecución en Docker con problemas de mapeo de puertos</li>
                                 </ul>
                             </div>
                             <div style="color: #666; font-size: 11px; margin-bottom: 10px; line-height: 1.5;">
-                                <strong style="color: #0066cc;">🔍 什么是回调URL？</strong><br>
-                                完成Google OAuth授权后，浏览器地址栏显示的完整URL，通常看起来像这样：<br>
+                                <strong style="color: #0066cc;">🔍 ¿Qué es la URL de callback?</strong><br>
+                                Es la URL completa que aparece en la barra del navegador tras autorizar en Google OAuth; suele tener este aspecto:<br>
                                 <code
                                     style="background: #f1f3f4; padding: 2px 4px; border-radius: 3px; font-size: 10px; word-break: break-all;">
                                     http://localhost:11451/?state=abc123...&code=4/0AVMBsJ...&scope=email%20profile...
@@ -1211,77 +1211,77 @@
                             <div
                                 style="background: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 6px; padding: 8px; margin-bottom: 10px;">
                                 <div style="color: #0066cc; font-size: 11px; font-weight: bold; margin-bottom: 3px;">📋
-                                    使用步骤：</div>
+                                    Pasos a seguir:</div>
                                 <ol
                                     style="color: #0066cc; font-size: 10px; margin: 0; padding-left: 16px; line-height: 1.3;">
-                                    <li>点击上方认证链接，完成Google授权</li>
-                                    <li>授权成功后，复制浏览器地址栏的<strong>完整URL</strong></li>
-                                    <li>粘贴到下方输入框，点击获取凭证即可</li>
+                                    <li>Pulsa el enlace de arriba y completa la autorización de Google</li>
+                                    <li>Tras autorizar, copia la <strong>URL completa</strong> de la barra del navegador</li>
+                                    <li>Pégala en el campo de abajo y pulsa en obtener credencial</li>
                                 </ol>
                             </div>
                             <div class="input-group">
                                 <input type="url" id="antigravityCallbackUrlInput"
-                                    placeholder="粘贴完整的回调URL，例如：http://localhost:11451/?state=xxx&code=xxx&scope=xxx..."
+                                    placeholder="Pega la URL de callback completa, p. ej.: http://localhost:11451/?state=xxx&code=xxx&scope=xxx..."
                                     style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 4px; font-size: 12px;">
                             </div>
                             <button class="btn"
                                 style="margin-top: 8px; background: #28a745; border-color: #28a745; font-size: 13px;"
                                 onclick="processAntigravityCallbackUrl()">
-                                从回调URL获取凭证
+                                Obtener credencial desde la URL
                             </button>
                         </div>
                     </div>
 
-                    <button class="btn" id="getAntigravityCredsBtn" onclick="getAntigravityCredentials()">获取 Antigravity
-                        凭证</button>
+                    <button class="btn" id="getAntigravityCredsBtn" onclick="getAntigravityCredentials()">Obtener credencial de
+                        Antigravity</button>
 
                     <div id="antigravityCredsSection" class="hidden">
-                        <h4>Antigravity 凭证内容：</h4>
+                        <h4>Contenido de la credencial Antigravity:</h4>
                         <div
                             style="background-color: #f0f8ff; border: 1px solid #b0d4ff; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 11px; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto;">
                             <pre id="antigravityCredsContent"></pre>
                         </div>
                         <button class="btn" onclick="downloadAntigravityCredentials()"
-                            style="margin-top: 10px;">下载凭证文件</button>
+                            style="margin-top: 10px;">Descargar credencial</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 批量上传标签页 -->
+            <!-- Pestaña de subida masiva -->
             <div id="uploadTab" class="tab-content">
-                <h3>批量上传认证文件</h3>
-                <p>支持批量上传 GCLI 和 Antigravity 认证文件</p>
+                <h3>Subida masiva de credenciales</h3>
+                <p>Permite subir en lote credenciales de GCLI y Antigravity</p>
 
-                <!-- GCLI凭证上传区域 -->
+                <!-- Zona de subida de credenciales GCLI -->
                 <div
                     style="margin-bottom: 25px; padding: 15px; border: 2px solid #007bff; border-radius: 8px; background: #f8f9fa;">
                     <h4
                         style="margin-top: 0; color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 8px; font-size: 16px;">
-                        📤 GCLI 凭证批量上传</h4>
+                        📤 Subida masiva de credenciales GCLI</h4>
 
                     <div style="border: 2px dashed #007bff; border-radius: 8px; padding: 25px; text-align: center; background-color: #fafafa; margin: 15px 0; cursor: pointer; transition: border-color 0.3s;"
                         id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                        <p style="margin: 10px 0; font-size: 16px;">📁 点击选择文件或拖拽文件到此区域</p>
-                        <p style="color: #666; font-size: 14px; margin: 5px 0;">支持 .json 和 .zip 格式文件</p>
-                        <p style="color: #888; font-size: 12px; margin: 5px 0;">ZIP文件会自动解压提取其中的JSON凭证</p>
+                        <p style="margin: 10px 0; font-size: 16px;">📁 Pulsa para elegir archivos o arrástralos aquí</p>
+                        <p style="color: #666; font-size: 14px; margin: 5px 0;">Formatos admitidos: .json y .zip</p>
+                        <p style="color: #888; font-size: 12px; margin: 5px 0;">Los ZIP se descomprimen automáticamente para extraer las credenciales JSON</p>
                     </div>
 
                     <input type="file" id="fileInput" multiple accept=".json,.zip" style="display: none;"
                         onchange="handleFileSelect(event)" />
 
                     <div id="fileListSection" class="hidden">
-                        <h4>选择的文件：</h4>
+                        <h4>Archivos seleccionados:</h4>
                         <div id="fileList"></div>
                         <div style="display: flex; gap: 10px; margin-top: 15px;">
-                            <button class="btn" onclick="uploadFiles()" style="flex: 1;">上传文件</button>
-                            <button class="btn" style="flex: 1;" onclick="clearFiles()">清空列表</button>
+                            <button class="btn" onclick="uploadFiles()" style="flex: 1;">Subir</button>
+                            <button class="btn" style="flex: 1;" onclick="clearFiles()">Vaciar lista</button>
                         </div>
                     </div>
 
                     <div id="uploadProgressSection" class="hidden">
                         <div
                             style="background-color: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 15px; margin: 20px 0;">
-                            <h4>上传进度：</h4>
+                            <h4>Progreso de subida:</h4>
                             <div class="progress-bar" style="height: 20px;">
                                 <div class="progress-fill" id="progressFill" style="width: 0%"></div>
                             </div>
@@ -1290,36 +1290,36 @@
                     </div>
                 </div>
 
-                <!-- Antigravity凭证上传区域 -->
+                <!-- Zona de subida de credenciales Antigravity -->
                 <div style="padding: 15px; border: 2px solid #28a745; border-radius: 8px; background: #f8f9fa;">
                     <h4
                         style="margin-top: 0; color: #28a745; border-bottom: 2px solid #28a745; padding-bottom: 8px; font-size: 16px;">
-                        📤 Antigravity 凭证批量上传</h4>
+                        📤 Subida masiva de credenciales Antigravity</h4>
 
                     <div style="border: 2px dashed #28a745; border-radius: 8px; padding: 25px; text-align: center; background-color: #fafafa; margin: 15px 0; cursor: pointer;"
                         onclick="document.getElementById('antigravityFileInput').click()">
-                        <p style="color: #28a745; font-size: 16px; font-weight: bold; margin: 8px 0;">📤 批量上传
-                            Antigravity 凭证文件</p>
-                        <p style="color: #666; font-size: 14px; margin: 4px 0;">支持 .json 和 .zip 格式文件</p>
-                        <p style="color: #888; font-size: 12px; margin: 4px 0;">ZIP文件会自动解压提取其中的JSON凭证</p>
+                        <p style="color: #28a745; font-size: 16px; font-weight: bold; margin: 8px 0;">📤 Subida masiva de
+                            credenciales Antigravity</p>
+                        <p style="color: #666; font-size: 14px; margin: 4px 0;">Formatos admitidos: .json y .zip</p>
+                        <p style="color: #888; font-size: 12px; margin: 4px 0;">Los ZIP se descomprimen automáticamente para extraer las credenciales JSON</p>
                     </div>
 
                     <input type="file" id="antigravityFileInput" multiple accept=".json,.zip" style="display: none;"
                         onchange="handleAntigravityFileSelect(event)" />
 
                     <div id="antigravityFileListSection" class="hidden">
-                        <h4>选择的文件：</h4>
+                        <h4>Archivos seleccionados:</h4>
                         <div id="antigravityFileList"></div>
                         <div style="display: flex; gap: 10px; margin-top: 15px;">
-                            <button class="btn" style="flex: 1;" onclick="uploadAntigravityFiles()">上传文件</button>
-                            <button class="btn" style="flex: 1;" onclick="clearAntigravityFiles()">清空列表</button>
+                            <button class="btn" style="flex: 1;" onclick="uploadAntigravityFiles()">Subir</button>
+                            <button class="btn" style="flex: 1;" onclick="clearAntigravityFiles()">Vaciar lista</button>
                         </div>
                     </div>
 
                     <div id="antigravityUploadProgressSection" class="hidden">
                         <div
                             style="background-color: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 15px; margin: 20px 0;">
-                            <h4>上传进度：</h4>
+                            <h4>Progreso de subida:</h4>
                             <div class="progress-bar" style="height: 20px;">
                                 <div class="progress-fill" id="antigravityProgressFill" style="width: 0%"></div>
                             </div>
@@ -1330,27 +1330,27 @@
             </div>
 
             <div id="manageTab" class="tab-content">
-                <h3>凭证文件管理</h3>
-                <p>管理所有认证文件，查看状态和执行操作</p>
+                <h3>Gestión de credenciales</h3>
+                <p>Gestiona las credenciales, consulta su estado y ejecuta acciones</p>
                 <div
                     style="background:#f0f7ff;border:1px solid #b8d4f0;border-radius:6px;padding:10px 14px;margin:8px 0;font-size:13px;">
-                    <strong>📡 API地址（点击复制）：</strong>
+                    <strong>📡 Direcciones de API (pulsa para copiar):</strong>
                     <table style="margin-top:6px;border-collapse:collapse;width:100%;">
                         <tr>
-                            <td style="color:#666;width:90px;">OpenAI格式</td>
-                            <td><code id="mGcliOpenaiUrl" onclick="cpUrl(this)" title="点击复制"
+                            <td style="color:#666;width:90px;">Formato OpenAI</td>
+                            <td><code id="mGcliOpenaiUrl" onclick="cpUrl(this)" title="Pulsa para copiar"
                                     style="background:#e8f0fe;padding:2px 6px;border-radius:3px;cursor:pointer;"></code>
                             </td>
                         </tr>
                         <tr>
-                            <td style="color:#666;">Claude格式</td>
-                            <td><code id="mGcliClaudeUrl" onclick="cpUrl(this)" title="点击复制"
+                            <td style="color:#666;">Formato Claude</td>
+                            <td><code id="mGcliClaudeUrl" onclick="cpUrl(this)" title="Pulsa para copiar"
                                     style="background:#e8f0fe;padding:2px 6px;border-radius:3px;cursor:pointer;"></code>
                             </td>
                         </tr>
                         <tr>
-                            <td style="color:#666;">Gemini格式</td>
-                            <td><code id="mGcliGeminiUrl" onclick="cpUrl(this)" title="点击复制"
+                            <td style="color:#666;">Formato Gemini</td>
+                            <td><code id="mGcliGeminiUrl" onclick="cpUrl(this)" title="Pulsa para copiar"
                                     style="background:#e8f0fe;padding:2px 6px;border-radius:3px;cursor:pointer;"></code>
                             </td>
                         </tr>
@@ -1361,88 +1361,88 @@
                     </script>
                 </div>
 
-                <!-- 检验功能说明 -->
+                <!-- Explicación de la función de verificación -->
                 <div class="status info" style="margin-bottom: 15px;">
-                    <strong>💡 检验功能说明：</strong>
+                    <strong>💡 Sobre la verificación:</strong>
                     <p style="margin: 8px 0; font-size: 14px;">
-                        点击每个凭证的"检验"按钮可以重新获取Project ID, 并查看账号的tier(free/pro/ultra)。<br>
-                        <strong style="color: #0c5460;">✅ 检验成功可以恢复403错误</strong>，让凭证重新正常工作。<br>
-                        建议在遇到403错误时使用此功能。
+                        Pulsa el botón «Verificar» de cada credencial para volver a obtener el Project ID y ver el tier de la cuenta (free/pro/ultra).<br>
+                        <strong style="color: #0c5460;">✅ Una verificación correcta puede recuperar errores 403</strong> y devolver la credencial a su funcionamiento normal.<br>
+                        Se recomienda usarla cuando aparezcan errores 403.
                     </p>
-                    <strong>💡 设置预览功能说明：</strong>
+                    <strong>💡 Sobre «Configurar Preview»:</strong>
                     <p style="margin: 8px 0; font-size: 14px;">
-                        点击每个凭证的"设置预览"按钮可以配置Preview通道。<br>
-                        <strong style="color: #0c5460;">✅ 设置预览可以解决部分凭证调用preview模型时404的问题</strong>。<br>
-                        建议在调用gemini-3-pro-preview等模型遇到404错误时使用此功能。
+                        Pulsa el botón «Configurar Preview» de cada credencial para configurar el canal Preview.<br>
+                        <strong style="color: #0c5460;">✅ Configurar Preview resuelve el error 404 al usar modelos preview en algunas credenciales</strong>.<br>
+                        Se recomienda usarla si obtienes un 404 con modelos como gemini-3-pro-preview.
                     </p>
                 </div>
 
-                <!-- 状态统计 -->
+                <!-- Estadísticas de estado -->
                 <div class="stats-container" id="statsContainer">
                     <div class="stat-item" style="border-left: 4px solid #007bff;">
                         <span class="stat-number" id="statTotal">0</span>
-                        <span class="stat-label">总计</span>
+                        <span class="stat-label">Total</span>
                     </div>
                     <div class="stat-item" style="border-left: 4px solid #28a745;">
                         <span class="stat-number" id="statNormal">0</span>
-                        <span class="stat-label">正常</span>
+                        <span class="stat-label">Activas</span>
                     </div>
                     <div class="stat-item" style="border-left: 4px solid #6c757d;">
                         <span class="stat-number" id="statDisabled">0</span>
-                        <span class="stat-label">禁用</span>
+                        <span class="stat-label">Desactivadas</span>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 8px; margin: 15px 0; flex-wrap: wrap;">
-                    <button class="btn btn-small" onclick="refreshCredsStatus()">刷新状态</button>
-                    <button class="btn btn-small" onclick="downloadAllCreds()">打包下载</button>
+                    <button class="btn btn-small" onclick="refreshCredsStatus()">Actualizar estado</button>
+                    <button class="btn btn-small" onclick="downloadAllCreds()">Descargar ZIP</button>
                 </div>
 
-                <!-- 批量操作控件 -->
+                <!-- Controles de acción masiva -->
                 <div class="card" style="margin: 15px 0;">
-                    <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">批量操作</h4>
+                    <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Acciones masivas</h4>
                     <div style="margin-bottom: 10px;">
                         <label style="display: flex; align-items: center; cursor: pointer; font-size: 14px;">
                             <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"
                                 style="margin-right: 8px; transform: scale(1.2);">
-                            全选
+                            Seleccionar todo
                         </label>
-                        <span id="selectedCount" style="font-weight: bold; color: #007bff; font-size: 12px;">已选择 0
-                            项</span>
+                        <span id="selectedCount" style="font-weight: bold; color: #007bff; font-size: 12px;">0
+                            seleccionadas</span>
                     </div>
                     <div class="batch-controls-grid">
                         <button class="btn btn-small" id="batchEnableBtn" onclick="batchAction('enable')"
-                            disabled>批量启用</button>
+                            disabled>Activar</button>
                         <button class="btn btn-small" id="batchDisableBtn" onclick="batchAction('disable')"
-                            disabled>批量禁用</button>
+                            disabled>Desactivar</button>
                         <button class="btn btn-small btn-danger" id="batchDeleteBtn" onclick="batchAction('delete')"
-                            disabled>批量删除</button>
+                            disabled>Eliminar</button>
                         <button class="btn btn-small" id="batchVerifyBtn" onclick="batchVerifyProjectIds()"
-                            disabled>批量检验</button>
+                            disabled>Verificar</button>
                         <button class="btn btn-small" id="batchPreviewBtn" onclick="batchConfigurePreview()"
-                            disabled>批量设置预览</button>
-                        <button class="btn btn-small" onclick="refreshAllEmails()">刷新所有邮箱</button>
-                        <button class="btn btn-small" onclick="deduplicateByEmail()">凭证一键去重</button>
+                            disabled>Configurar Preview</button>
+                        <button class="btn btn-small" onclick="refreshAllEmails()">Actualizar correos</button>
+                        <button class="btn btn-small" onclick="deduplicateByEmail()">Quitar duplicados</button>
                     </div>
                 </div>
 
-                <!-- 筛选控件 -->
+                <!-- Controles de filtrado -->
                 <div
                     style="background-color: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 12px; margin: 15px 0;">
                     <div class="form-group" style="margin-bottom: 8px;">
-                        <label for="statusFilter">状态筛选：</label>
+                        <label for="statusFilter">Estado:</label>
                         <select id="statusFilter" onchange="applyStatusFilter()">
-                            <option value="all">全部凭证</option>
-                            <option value="enabled">仅启用</option>
-                            <option value="disabled">仅禁用</option>
+                            <option value="all">Todas</option>
+                            <option value="enabled">Solo activas</option>
+                            <option value="disabled">Solo desactivadas</option>
                         </select>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 8px;">
-                        <label for="errorCodeFilter">错误码筛选：</label>
+                        <label for="errorCodeFilter">Código de error:</label>
                         <select id="errorCodeFilter" onchange="applyStatusFilter()">
-                            <option value="all">全部</option>
-                            <option value="none">无错误</option>
+                            <option value="all">Todos</option>
+                            <option value="none">Sin errores</option>
                             <option value="400">400</option>
                             <option value="403">403</option>
                             <option value="429">429</option>
@@ -1451,27 +1451,27 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 8px;">
-                        <label for="cooldownFilter">冷却状态：</label>
+                        <label for="cooldownFilter">Enfriamiento:</label>
                         <select id="cooldownFilter" onchange="applyStatusFilter()">
-                            <option value="all">全部</option>
-                            <option value="in_cooldown">CD中</option>
-                            <option value="no_cooldown">未CD</option>
+                            <option value="all">Todos</option>
+                            <option value="in_cooldown">En CD</option>
+                            <option value="no_cooldown">Sin CD</option>
                         </select>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 8px;">
                         <label for="previewFilter">Preview：</label>
                         <select id="previewFilter" onchange="applyStatusFilter()">
-                            <option value="all">全部</option>
-                            <option value="preview">支持</option>
-                            <option value="no_preview">不支持</option>
+                            <option value="all">Todos</option>
+                            <option value="preview">Compatible</option>
+                            <option value="no_preview">No compatible</option>
                         </select>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 8px;">
                         <label for="tierFilter">Tier：</label>
                         <select id="tierFilter" onchange="applyStatusFilter()">
-                            <option value="all">全部</option>
+                            <option value="all">Todos</option>
                             <option value="free">Free</option>
                             <option value="pro">Pro</option>
                             <option value="ultra">Ultra</option>
@@ -1479,7 +1479,7 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label for="pageSizeSelect">每页显示：</label>
+                        <label for="pageSizeSelect">Por página:</label>
                         <select id="pageSizeSelect" onchange="changePageSize()">
                             <option value="10">10</option>
                             <option value="20" selected>20</option>
@@ -1490,23 +1490,23 @@
                 </div>
 
                 <div id="credsListSection">
-                    <div class="loading" id="credsLoading">正在加载凭证文件...</div>
+                    <div class="loading" id="credsLoading">Cargando credenciales...</div>
                     <div id="credsList"></div>
 
-                    <!-- 分页控件 -->
+                    <!-- Controles de paginación -->
                     <div id="paginationContainer" style="display: none; text-align: center; margin: 20px 0;">
                         <div
                             style="display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap;">
                             <button class="btn btn-small" id="prevPageBtn" onclick="changePage(-1)"
-                                style="background-color: #6c757d;">上一页</button>
-                            <div id="paginationInfo" style="font-size: 14px; color: #666;">第 1 页，共 1 页</div>
+                                style="background-color: #6c757d;">Anterior</button>
+                            <div id="paginationInfo" style="font-size: 14px; color: #666;">Página 1 de 1</div>
                             <button class="btn btn-small" id="nextPageBtn" onclick="changePage(1)"
-                                style="background-color: #6c757d;">下一页</button>
+                                style="background-color: #6c757d;">Siguiente</button>
                         </div>
                         <div
                             style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                             <div>
-                                <label for="pageSizeSelect" style="font-size: 12px; margin-right: 5px;">每页显示：</label>
+                                <label for="pageSizeSelect" style="font-size: 12px; margin-right: 5px;">Por página:</label>
                                 <select id="pageSizeSelect" onchange="changePageSize()"
                                     style="padding: 4px; font-size: 12px;">
                                     <option value="10">10</option>
@@ -1520,29 +1520,29 @@
                 </div>
             </div>
 
-            <!-- Antigravity凭证管理标签页 -->
+            <!-- Pestaña de gestión de credenciales Antigravity -->
             <div id="antigravity-manageTab" class="tab-content">
-                <h3>Antigravity凭证文件管理</h3>
-                <p>管理所有Antigravity认证文件，查看状态和执行操作</p>
+                <h3>Gestión de credenciales Antigravity</h3>
+                <p>Gestiona las credenciales Antigravity, consulta su estado y ejecuta acciones</p>
                 <div
                     style="background:#f0f7ff;border:1px solid #b8d4f0;border-radius:6px;padding:10px 14px;margin:8px 0;font-size:13px;">
-                    <strong>📡 API地址（点击复制）：</strong>
+                    <strong>📡 Direcciones de API (pulsa para copiar):</strong>
                     <table style="margin-top:6px;border-collapse:collapse;width:100%;">
                         <tr>
-                            <td style="color:#666;width:90px;">OpenAI格式</td>
-                            <td><code id="mAntOpenaiUrl" onclick="cpUrl(this)" title="点击复制"
+                            <td style="color:#666;width:90px;">Formato OpenAI</td>
+                            <td><code id="mAntOpenaiUrl" onclick="cpUrl(this)" title="Pulsa para copiar"
                                     style="background:#e8f0fe;padding:2px 6px;border-radius:3px;cursor:pointer;"></code>
                             </td>
                         </tr>
                         <tr>
-                            <td style="color:#666;">Claude格式</td>
-                            <td><code id="mAntClaudeUrl" onclick="cpUrl(this)" title="点击复制"
+                            <td style="color:#666;">Formato Claude</td>
+                            <td><code id="mAntClaudeUrl" onclick="cpUrl(this)" title="Pulsa para copiar"
                                     style="background:#e8f0fe;padding:2px 6px;border-radius:3px;cursor:pointer;"></code>
                             </td>
                         </tr>
                         <tr>
-                            <td style="color:#666;">Gemini格式</td>
-                            <td><code id="mAntGeminiUrl" onclick="cpUrl(this)" title="点击复制"
+                            <td style="color:#666;">Formato Gemini</td>
+                            <td><code id="mAntGeminiUrl" onclick="cpUrl(this)" title="Pulsa para copiar"
                                     style="background:#e8f0fe;padding:2px 6px;border-radius:3px;cursor:pointer;"></code>
                             </td>
                         </tr>
@@ -1552,88 +1552,88 @@
                     </script>
                 </div>
 
-                <!-- 检验功能说明 -->
+                <!-- Explicación de la función de verificación -->
                 <div class="status info" style="margin-bottom: 15px;">
-                    <strong>💡 检验功能说明：</strong>
+                    <strong>💡 Sobre la verificación:</strong>
                     <p style="margin: 8px 0; font-size: 14px;">
-                        点击每个凭证的"检验"按钮可以重新获取Project ID, 并查看账号的tier(free/pro/ultra)。<br>
-                        <strong style="color: #0c5460;">✅ 检验成功可以恢复403错误</strong>，让凭证重新正常工作。<br>
-                        建议在遇到403错误时使用此功能。
+                        Pulsa el botón «Verificar» de cada credencial para volver a obtener el Project ID y ver el tier de la cuenta (free/pro/ultra).<br>
+                        <strong style="color: #0c5460;">✅ Una verificación correcta puede recuperar errores 403</strong> y devolver la credencial a su funcionamiento normal.<br>
+                        Se recomienda usarla cuando aparezcan errores 403.
                     </p>
                 </div>
 
-                <!-- 状态统计 -->
+                <!-- Estadísticas de estado -->
                 <div class="stats-container" id="antigravityStatsContainer">
                     <div class="stat-item" style="border-left: 4px solid #007bff;">
                         <span class="stat-number" id="antigravityStatTotal">0</span>
-                        <span class="stat-label">总计</span>
+                        <span class="stat-label">Total</span>
                     </div>
                     <div class="stat-item" style="border-left: 4px solid #28a745;">
                         <span class="stat-number" id="antigravityStatNormal">0</span>
-                        <span class="stat-label">正常</span>
+                        <span class="stat-label">Activas</span>
                     </div>
                     <div class="stat-item" style="border-left: 4px solid #6c757d;">
                         <span class="stat-number" id="antigravityStatDisabled">0</span>
-                        <span class="stat-label">禁用</span>
+                        <span class="stat-label">Desactivadas</span>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 8px; margin: 15px 0; flex-wrap: wrap;">
                     <button class="btn btn-small" onclick="refreshAntigravityCredsList()"
-                        style="background-color: #17a2b8;">刷新状态</button>
+                        style="background-color: #17a2b8;">Actualizar estado</button>
                     <button class="btn btn-small" onclick="downloadAllAntigravityCreds()"
-                        style="background-color: #28a745;">打包下载</button>
+                        style="background-color: #28a745;">Descargar ZIP</button>
                 </div>
 
-                <!-- 批量操作控件 -->
+                <!-- Controles de acción masiva -->
                 <div class="card" style="margin: 15px 0;">
-                    <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">批量操作</h4>
+                    <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Acciones masivas</h4>
                     <div style="margin-bottom: 10px;">
                         <label style="display: flex; align-items: center; cursor: pointer; font-size: 14px;">
                             <input type="checkbox" id="selectAllAntigravityCheckbox"
                                 onchange="toggleSelectAllAntigravity()"
                                 style="margin-right: 8px; transform: scale(1.2);">
-                            全选
+                            Seleccionar todo
                         </label>
                         <span id="antigravitySelectedCount"
-                            style="font-weight: bold; color: #007bff; font-size: 12px;">已选择 0
-                            项</span>
+                            style="font-weight: bold; color: #007bff; font-size: 12px;">0
+                            seleccionadas</span>
                     </div>
                     <div class="batch-controls-grid">
                         <button class="btn btn-small" id="antigravityBatchEnableBtn"
-                            onclick="batchAntigravityAction('enable')" disabled>批量启用</button>
+                            onclick="batchAntigravityAction('enable')" disabled>Activar</button>
                         <button class="btn btn-small" id="antigravityBatchDisableBtn"
-                            onclick="batchAntigravityAction('disable')" disabled>批量禁用</button>
+                            onclick="batchAntigravityAction('disable')" disabled>Desactivar</button>
                         <button class="btn btn-small btn-danger" id="antigravityBatchDeleteBtn"
-                            onclick="batchAntigravityAction('delete')" disabled>批量删除</button>
+                            onclick="batchAntigravityAction('delete')" disabled>Eliminar</button>
                         <button class="btn btn-small" id="antigravityBatchEnableCreditBtn"
-                            onclick="batchAntigravityAction('enable_credit')" disabled>批量开启积分</button>
+                            onclick="batchAntigravityAction('enable_credit')" disabled>Activar créditos</button>
                         <button class="btn btn-small" id="antigravityBatchDisableCreditBtn"
-                            onclick="batchAntigravityAction('disable_credit')" disabled>批量关闭积分</button>
+                            onclick="batchAntigravityAction('disable_credit')" disabled>Desactivar créditos</button>
                         <button class="btn btn-small" id="antigravityBatchVerifyBtn"
-                            onclick="batchVerifyAntigravityProjectIds()" disabled>批量检验</button>
-                        <button class="btn btn-small" onclick="refreshAllAntigravityEmails()">刷新所有邮箱</button>
-                        <button class="btn btn-small" onclick="deduplicateAntigravityByEmail()">凭证一键去重</button>
+                            onclick="batchVerifyAntigravityProjectIds()" disabled>Verificar</button>
+                        <button class="btn btn-small" onclick="refreshAllAntigravityEmails()">Actualizar correos</button>
+                        <button class="btn btn-small" onclick="deduplicateAntigravityByEmail()">Quitar duplicados</button>
                     </div>
                 </div>
 
-                <!-- 筛选控件 -->
+                <!-- Controles de filtrado -->
                 <div
                     style="background-color: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 12px; margin: 15px 0;">
                     <div class="form-group" style="margin-bottom: 8px;">
-                        <label for="antigravityStatusFilter">状态筛选：</label>
+                        <label for="antigravityStatusFilter">Estado:</label>
                         <select id="antigravityStatusFilter" onchange="applyAntigravityStatusFilter()">
-                            <option value="all">全部凭证</option>
-                            <option value="enabled">仅启用</option>
-                            <option value="disabled">仅禁用</option>
+                            <option value="all">Todas</option>
+                            <option value="enabled">Solo activas</option>
+                            <option value="disabled">Solo desactivadas</option>
                         </select>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 8px;">
-                        <label for="antigravityErrorCodeFilter">错误码筛选：</label>
+                        <label for="antigravityErrorCodeFilter">Código de error:</label>
                         <select id="antigravityErrorCodeFilter" onchange="applyAntigravityStatusFilter()">
-                            <option value="all">全部</option>
-                            <option value="none">无错误</option>
+                            <option value="all">Todos</option>
+                            <option value="none">Sin errores</option>
                             <option value="400">400</option>
                             <option value="403">403</option>
                             <option value="429">429</option>
@@ -1642,18 +1642,18 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 8px;">
-                        <label for="antigravityCooldownFilter">冷却状态：</label>
+                        <label for="antigravityCooldownFilter">Enfriamiento:</label>
                         <select id="antigravityCooldownFilter" onchange="applyAntigravityStatusFilter()">
-                            <option value="all">全部</option>
-                            <option value="in_cooldown">CD中</option>
-                            <option value="no_cooldown">未CD</option>
+                            <option value="all">Todos</option>
+                            <option value="in_cooldown">En CD</option>
+                            <option value="no_cooldown">Sin CD</option>
                         </select>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 8px;">
                         <label for="antigravityTierFilter">Tier：</label>
                         <select id="antigravityTierFilter" onchange="applyAntigravityStatusFilter()">
-                            <option value="all">全部</option>
+                            <option value="all">Todos</option>
                             <option value="free">Free</option>
                             <option value="pro">Pro</option>
                             <option value="ultra">Ultra</option>
@@ -1661,7 +1661,7 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label for="antigravityPageSizeSelect">每页显示：</label>
+                        <label for="antigravityPageSizeSelect">Por página:</label>
                         <select id="antigravityPageSizeSelect" onchange="changeAntigravityPageSize()">
                             <option value="10">10</option>
                             <option value="20" selected>20</option>
@@ -1672,133 +1672,133 @@
                 </div>
 
                 <div id="antigravityCredsListSection">
-                    <div class="loading" id="antigravityCredsLoading">正在加载凭证文件...</div>
+                    <div class="loading" id="antigravityCredsLoading">Cargando credenciales...</div>
                     <div id="antigravityCredsList"></div>
 
-                    <!-- 分页控件 -->
+                    <!-- Controles de paginación -->
                     <div id="antigravityPaginationContainer" style="display: none; text-align: center; margin: 20px 0;">
                         <div
                             style="display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap;">
                             <button class="btn btn-small" id="antigravityPrevPageBtn"
-                                onclick="changeAntigravityPage(-1)" style="background-color: #6c757d;">上一页</button>
-                            <div id="antigravityPaginationInfo" style="font-size: 14px; color: #666;">第 1 页，共 1 页</div>
+                                onclick="changeAntigravityPage(-1)" style="background-color: #6c757d;">Anterior</button>
+                            <div id="antigravityPaginationInfo" style="font-size: 14px; color: #666;">Página 1 de 1</div>
                             <button class="btn btn-small" id="antigravityNextPageBtn" onclick="changeAntigravityPage(1)"
-                                style="background-color: #6c757d;">下一页</button>
+                                style="background-color: #6c757d;">Siguiente</button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="configTab" class="tab-content">
-                <h3>配置管理</h3>
-                <p>管理系统配置参数，修改后立即生效</p>
+                <h3>Ajustes</h3>
+                <p>Gestiona los parámetros del sistema; los cambios se aplican al instante</p>
 
                 <div style="display: flex; gap: 8px; margin: 15px 0; flex-wrap: wrap;">
                     <button class="btn btn-small" onclick="loadConfig()"
-                        style="background-color: #17a2b8;">刷新配置</button>
-                    <button class="btn btn-small" onclick="saveConfig()">保存配置</button>
+                        style="background-color: #17a2b8;">Recargar</button>
+                    <button class="btn btn-small" onclick="saveConfig()">Guardar</button>
                 </div>
 
                 <div id="configSection">
-                    <div class="loading" id="configLoading">正在加载配置...</div>
+                    <div class="loading" id="configLoading">Cargando ajustes...</div>
                     <div id="configForm" class="hidden">
                         <div class="card">
-                            <h4 style="margin-top: 0; margin-bottom: 15px;">服务器配置</h4>
+                            <h4 style="margin-top: 0; margin-bottom: 15px;">Servidor</h4>
 
                             <div class="form-group">
-                                <label for="host">服务器主机地址:</label>
-                                <input type="text" id="host" placeholder="例如: 0.0.0.0, 127.0.0.1" />
+                                <label for="host">Host del servidor:</label>
+                                <input type="text" id="host" placeholder="p. ej.: 0.0.0.0, 127.0.0.1" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">服务器监听的主机地址，0.0.0.0表示监听所有接口</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Host en el que escucha el servidor; 0.0.0.0 escucha en todas las interfaces</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="port">服务器端口:</label>
+                                <label for="port">Puerto del servidor:</label>
                                 <input type="number" id="port" min="1" max="65535" placeholder="7861" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">服务器监听的端口号，修改后需要重启服务器</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Puerto de escucha del servidor; hay que reiniciar tras cambiarlo</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="configApiPassword">API访问密码:</label>
+                                <label for="configApiPassword">Contraseña de la API:</label>
                                 <input type="text" id="configApiPassword" placeholder="pwd" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">聊天API访问密码，用于OpenAI和Gemini
-                                    API端点的认证</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Contraseña de acceso a la API de chat, usada en los endpoints de OpenAI y
+                                    Gemini</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="configPanelPassword">控制面板密码:</label>
+                                <label for="configPanelPassword">Contraseña del panel:</label>
                                 <input type="text" id="configPanelPassword" placeholder="pwd" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">控制面板访问密码，用于web界面登录认证</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Contraseña de acceso al panel de control, para iniciar sesión en la web</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="configPassword">通用密码:</label>
+                                <label for="configPassword">Contraseña general:</label>
                                 <input type="text" id="configPassword" placeholder="pwd" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">（兼容性保留）设置后将覆盖上述两个密码，留空则使用分开的密码设置</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">(Se mantiene por compatibilidad) Si se define, sustituye a las dos anteriores; déjala vacía para usar contraseñas separadas</small>
                             </div>
                         </div>
 
                         <div class="card">
-                            <h4 style="margin-top: 0; margin-bottom: 15px;">基础配置</h4>
+                            <h4 style="margin-top: 0; margin-bottom: 15px;">Ajustes básicos</h4>
 
                             <div class="form-group">
-                                <label for="credentialsDir">凭证目录路径:</label>
+                                <label for="credentialsDir">Directorio de credenciales:</label>
                                 <input type="text" id="credentialsDir" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">存储认证文件的目录路径</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Ruta del directorio donde se guardan las credenciales</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="proxy">代理设置:</label>
+                                <label for="proxy">Proxy:</label>
                                 <input type="text" id="proxy"
-                                    placeholder="例如: http://proxy:11451 或 socks5://proxy:1080" />
+                                    placeholder="p. ej.: http://proxy:11451 o socks5://proxy:1080" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">HTTP/HTTPS/SOCKS5Endpoint，留空表示不使用代理</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Endpoint HTTP/HTTPS/SOCKS5; déjalo vacío para no usar proxy</small>
                             </div>
                         </div>
 
                         <div class="card">
-                            <h4 style="margin-top: 0; margin-bottom: 15px;">端点配置</h4>
+                            <h4 style="margin-top: 0; margin-bottom: 15px;">Endpoints</h4>
 
-                            <!-- 快速配置按钮 -->
+                            <!-- Botones de configuración rápida -->
                             <div class="form-group">
                                 <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
                                     <button type="button" class="btn" onclick="useMirrorUrls()"
                                         style="font-size: 13px; flex: 1; min-width: 120px;">
-                                        🚀 镜像网址
+                                        🚀 Espejo
                                     </button>
                                     <button type="button" class="btn" onclick="restoreOfficialUrls()"
                                         style="font-size: 13px; flex: 1; min-width: 120px;">
-                                        🔄 官方端点
+                                        🔄 Oficial
                                     </button>
                                 </div>
                                 <small
-                                    style="display: block; color: #666; font-size: 11px; margin-bottom: 10px;">镜像网址主要解决墙内无法访问官方端点的问题，部分地区可能无法使用</small>
+                                    style="display: block; color: #666; font-size: 11px; margin-bottom: 10px;">El espejo sirve para acceder a los endpoints oficiales desde redes con restricciones; puede no funcionar en algunas zonas</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="codeAssistEndpoint">Code Assist Endpoint:</label>
                                 <input type="text" id="codeAssistEndpoint" />
                                 <small style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Google
-                                    Cloud Code Assist API端点地址</small>
+                                    Endpoint de la API Cloud Code Assist</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="oauthProxyUrl">OAuth Endpoint:</label>
                                 <input type="text" id="oauthProxyUrl" placeholder="https://oauth2.googleapis.com" />
                                 <small style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Google
-                                    OAuth2 API端点地址，用于token获取和刷新</small>
+                                    Endpoint de la API OAuth2, para obtener y renovar tokens</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="googleapisProxyUrl">Google APIs Endpoint:</label>
                                 <input type="text" id="googleapisProxyUrl" placeholder="https://www.googleapis.com" />
                                 <small style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Google
-                                    APIs API端点地址，用于API服务调用</small>
+                                    Endpoint de las APIs, para las llamadas a los servicios</small>
                             </div>
 
 
@@ -1807,7 +1807,7 @@
                                 <input type="text" id="resourceManagerApiUrl"
                                     placeholder="https://cloudresourcemanager.googleapis.com" />
                                 <small style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Google
-                                    Cloud Resource Manager API端点地址，用于项目管理</small>
+                                    Endpoint de la API Cloud Resource Manager, para gestionar proyectos</small>
                             </div>
 
                             <div class="form-group">
@@ -1815,7 +1815,7 @@
                                 <input type="text" id="serviceUsageApiUrl"
                                     placeholder="https://serviceusage.googleapis.com" />
                                 <small style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Google
-                                    Cloud Service Usage API端点地址，用于服务启用管理</small>
+                                    Endpoint de la API Cloud Service Usage, para activar servicios</small>
                             </div>
 
                             <div class="form-group">
@@ -1823,74 +1823,74 @@
                                 <input type="text" id="antigravityApiUrl"
                                     placeholder="https://daily-cloudcode-pa.googleapis.com" />
                                 <small style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Google
-                                    Antigravity API端点地址，用于反重力模式</small>
+                                    Endpoint de la API Antigravity, usado por el modo Antigravity</small>
                             </div>
                         </div>
 
                         <div class="card">
-                            <h4 style="margin-top: 0; margin-bottom: 15px;">自动封禁配置</h4>
+                            <h4 style="margin-top: 0; margin-bottom: 15px;">Bloqueo automático</h4>
 
                             <div class="form-group">
                                 <label style="display: flex; align-items: center; cursor: pointer;">
                                     <input type="checkbox" id="autoBanEnabled" style="margin-right: 8px;" />
-                                    启用自动封禁
+                                    Activar bloqueo automático
                                 </label>
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">遇到指定错误码时自动禁用凭证</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Desactiva la credencial automáticamente ante los códigos de error indicados</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="autoBanErrorCodes">自动封禁错误码:</label>
-                                <input type="text" id="autoBanErrorCodes" placeholder="例如: 400,403" />
+                                <label for="autoBanErrorCodes">Códigos de error:</label>
+                                <input type="text" id="autoBanErrorCodes" placeholder="p. ej.: 400,403" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">用逗号分隔的错误码列表</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Lista de códigos de error separados por comas</small>
                             </div>
                         </div>
 
                         <div class="card">
-                            <h4 style="margin-top: 0; margin-bottom: 15px;">错误重试配置</h4>
+                            <h4 style="margin-top: 0; margin-bottom: 15px;">Reintentos</h4>
 
                             <div class="form-group">
                                 <label style="display: flex; align-items: center; cursor: pointer;">
                                     <input type="checkbox" id="retry429Enabled" style="margin-right: 8px;" />
-                                    启用错误重试
+                                    Activar reintentos
                                 </label>
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">遇到错误时自动重试</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Reintenta automáticamente cuando se produce un error</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="retry429MaxRetries">错误重试次数:</label>
+                                <label for="retry429MaxRetries">Número de reintentos:</label>
                                 <input type="number" id="retry429MaxRetries" min="1" max="50" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">遇到错误时的最大重试次数</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Número máximo de reintentos ante un error</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="retry429Interval">错误重试间隔(秒):</label>
+                                <label for="retry429Interval">Intervalo entre reintentos (s):</label>
                                 <input type="number" id="retry429Interval" min="0.01" max="10" step="0.01" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">遇到错误时每两次重试间的等待时间</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Tiempo de espera entre dos reintentos</small>
                             </div>
                         </div>
 
 
                         <div class="card">
-                            <h4 style="margin-top: 0; margin-bottom: 15px;">兼容性配置</h4>
+                            <h4 style="margin-top: 0; margin-bottom: 15px;">Compatibilidad</h4>
 
                             <div class="form-group">
                                 <label style="display: flex; align-items: center; gap: 8px;">
                                     <input type="checkbox" id="compatibilityModeEnabled"
                                         style="width: auto; margin: 0;" />
-                                    启用兼容性模式
+                                    Activar modo compatibilidad
                                 </label>
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">启用后所有system消息全部转换成user，停用system_instructions
-                                    <span style="color: #28a745;">✓ 支持热更新</span></small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Convierte todos los mensajes system en user y desactiva system_instructions
+                                    <span style="color: #28a745;">✓ Se aplica en caliente</span></small>
                                 <div
                                     style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px; margin-top: 8px; font-size: 13px; color: #856404;">
-                                    <strong>⚠️ 注意：</strong>该选项可能会降低模型理解能力，但是能避免流式空回的情况。
-                                    <br><strong>适用场景：</strong>当遇到流式传输时模型不返回内容或返回空响应时启用此选项。
+                                    <strong>⚠️ Atención:</strong> esta opción puede reducir la comprensión del modelo, pero evita respuestas vacías en streaming.
+                                    <br><strong>Cuándo usarla:</strong> actívala si el modelo no devuelve contenido o responde en blanco al usar streaming.
                                 </div>
                             </div>
 
@@ -1898,15 +1898,15 @@
                                 <label style="display: flex; align-items: center; gap: 8px;">
                                     <input type="checkbox" id="returnThoughtsToFrontend"
                                         style="width: auto; margin: 0;" />
-                                    返回思维链到前端
+                                    Devolver la cadena de razonamiento
                                 </label>
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">启用后，模型的思维链会在响应中返回；禁用后，思维链会被过滤掉
-                                    <span style="color: #28a745;">✓ 支持热更新</span></small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Si se activa, la cadena de razonamiento se incluye en la respuesta; si se desactiva, se filtra
+                                    <span style="color: #28a745;">✓ Se aplica en caliente</span></small>
                                 <div
                                     style="background-color: #e3f2fd; border: 1px solid #2196f3; border-radius: 6px; padding: 12px; margin-top: 8px; font-size: 13px; color: #0d47a1;">
-                                    <strong>💭 说明：</strong>某些模型（如Gemini 2.0
-                                    Pro）支持thinking模式，会在生成回答前先输出思考过程。启用后可以看到模型的思考过程；禁用后只显示最终回答，让输出更简洁。
+                                    <strong>💭 Nota:</strong> algunos modelos (como Gemini 2.0
+                                    Pro) admiten el modo thinking y muestran su razonamiento antes de responder. Al activarlo verás ese proceso; al desactivarlo solo se muestra la respuesta final.
                                 </div>
                             </div>
 
@@ -1914,17 +1914,17 @@
                                 <label style="display: flex; align-items: center; gap: 8px;">
                                     <input type="checkbox" id="antigravityStream2nostream"
                                         style="width: auto; margin: 0;" />
-                                    Antigravity流式转非流式
+                                    Antigravity: streaming a no streaming
                                 </label>
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">启用后，非流式请求将使用流式API并收集为完整响应
-                                    <span style="color: #28a745;">✓ 支持热更新</span></small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Si se activa, las solicitudes sin streaming usarán la API de streaming y se recopilarán en una respuesta completa
+                                    <span style="color: #28a745;">✓ Se aplica en caliente</span></small>
                                 <div
                                     style="background-color: #f3e5f5; border: 1px solid #9c27b0; border-radius: 6px; padding: 12px; margin-top: 8px; font-size: 13px; color: #4a148c;">
                                     <strong>🔄
-                                        说明：</strong>针对Antigravity模式的优化选项。启用后，即使客户端请求非流式响应，后端也会使用流式API获取数据并收集完整后再返回。
-                                    <br><strong>适用场景：</strong>某些情况下流式API比非流式API更稳定，启用此选项可以提高响应质量。
-                                    <br><strong>默认：</strong>已启用
+                                        Nota:</strong> opción de optimización para el modo Antigravity. Si se activa, aunque el cliente pida una respuesta sin streaming, el backend usará la API de streaming y devolverá la respuesta completa.
+                                    <br><strong>Cuándo usarla:</strong> en algunos casos la API de streaming es más estable y mejora la calidad de la respuesta.
+                                    <br><strong>Por defecto:</strong> activada
                                 </div>
                             </div>
 
@@ -1932,81 +1932,81 @@
                                 <label style="display: flex; align-items: center; gap: 8px;">
                                     <input type="checkbox" id="antigravitySwitchCredentialEnabled"
                                         style="width: auto; margin: 0;" />
-                                    Antigravity切换凭证
+                                    Antigravity: cambiar de credencial
                                 </label>
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">启用后重试时切换凭证；禁用时保持当前凭证，直到该凭证对当前模型进入CD或被禁用
-                                    <span style="color: #28a745;">✓ 支持热更新</span></small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Si se activa, cambia de credencial al reintentar; si no, mantiene la actual hasta que entre en CD para ese modelo o se desactive
+                                    <span style="color: #28a745;">✓ Se aplica en caliente</span></small>
                                 <div
                                     style="background-color: #e8f5e9; border: 1px solid #66bb6a; border-radius: 6px; padding: 12px; margin-top: 8px; font-size: 13px; color: #1b5e20;">
-                                    <strong>✅ 说明：</strong>默认关闭，便于连续使用同一凭证；当发生模型CD或自动禁用时仍会切换。
+                                    <strong>✅ Nota:</strong> desactivada por defecto para reutilizar la misma credencial; aun así cambiará si el modelo entra en CD o la credencial se desactiva.
                                 </div>
                             </div>
                         </div>
 
                         <div class="card">
-                            <h4 style="margin-top: 0; margin-bottom: 15px;">抗截断配置</h4>
+                            <h4 style="margin-top: 0; margin-bottom: 15px;">Antitruncamiento</h4>
 
                             <div class="form-group">
-                                <label for="antiTruncationMaxAttempts">抗截断最大重试次数:</label>
+                                <label for="antiTruncationMaxAttempts">Reintentos máximos:</label>
                                 <input type="number" id="antiTruncationMaxAttempts" min="1" max="10" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">当检测到输出截断时的最大续传尝试次数</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Número máximo de intentos de continuación al detectar una salida truncada</small>
                             </div>
 
                             <div
                                 style="background-color: #e3f2fd; border: 1px solid #1976d2; border-radius: 6px; padding: 12px; margin-top: 8px; font-size: 13px; color: #1565c0;">
-                                <strong>注意：</strong>抗截断功能现在通过模型名控制：
+                                <strong>Atención:</strong> el antitruncamiento se controla ahora mediante el nombre del modelo:
                                 <ul style="margin: 5px 0; padding-left: 20px; color: #424242;">
-                                    <li>选择带有 "-流式抗截断" 后缀的模型即可启用</li>
-                                    <li>该功能仅在流式传输时生效</li>
-                                    <li>例如: "gemini-2.5-pro-流式抗截断"</li>
+                                    <li>Selecciona un modelo con el sufijo "-流式抗截断" para activarlo</li>
+                                    <li>Solo tiene efecto con transmisión en streaming</li>
+                                    <li>Ejemplo: "gemini-2.5-pro-流式抗截断"</li>
                                 </ul>
                             </div>
                         </div>
 
                         <div class="card">
-                            <h4 style="margin-top: 0; margin-bottom: 15px;">保活配置</h4>
+                            <h4 style="margin-top: 0; margin-bottom: 15px;">Keepalive</h4>
 
                             <div class="form-group">
-                                <label for="keepaliveUrl">保活 URL:</label>
+                                <label for="keepaliveUrl">URL de keepalive:</label>
                                 <input type="text" id="keepaliveUrl"
-                                    placeholder="留空则不启用，例如: https://your-app.example.com/keepalive" />
-                                <small style="display: block; color: #666; font-size: 12px; margin-top: 5px;">配置后服务会定期向该
-                                    URL 发送 GET 请求以保持在线；留空则禁用保活 ✓ 支持热更新</small>
+                                    placeholder="Déjalo vacío para desactivarlo, p. ej.: https://your-app.example.com/keepalive" />
+                                <small style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Si se configura, el servicio enviará periódicamente peticiones GET a esa
+                                    URL para mantenerse activo; déjalo vacío para desactivarlo ✓ Se aplica en caliente</small>
                                 <button type="button" onclick="autoSetKeepaliveUrl()"
-                                    style="margin-top:6px; padding:4px 12px; font-size:13px; cursor:pointer;">一键设置保活</button>
+                                    style="margin-top:6px; padding:4px 12px; font-size:13px; cursor:pointer;">Configurar automáticamente</button>
                             </div>
 
                             <div class="form-group">
-                                <label for="keepaliveInterval">保活间隔 (秒):</label>
+                                <label for="keepaliveInterval">Intervalo de keepalive (s):</label>
                                 <input type="number" id="keepaliveInterval" min="5" max="86400" />
                                 <small
-                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">两次保活请求之间的等待时间，范围
-                                    5 - 86400 秒，默认 60 ✓ 支持热更新</small>
+                                    style="display: block; color: #666; font-size: 12px; margin-top: 5px;">Tiempo de espera entre dos peticiones de keepalive; entre
+                                    5 y 86400 s, por defecto 60 ✓ Se aplica en caliente</small>
                             </div>
                         </div>
 
                         <div class="card">
-                            <h4 style="margin-top: 0; margin-bottom: 15px;">配置热更新说明</h4>
+                            <h4 style="margin-top: 0; margin-bottom: 15px;">Aplicación de los cambios</h4>
 
                             <div
                                 style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 12px; font-size: 13px; color: #155724; margin-bottom: 10px;">
-                                <strong>🔥 热更新配置（立即生效）：</strong>
+                                <strong>🔥 Cambios inmediatos:</strong>
                                 <ul style="margin: 8px 0; padding-left: 20px; color: #212529;">
-                                    <li><strong>网络配置：</strong>代理、端点配置、超时、连接数</li>
-                                    <li><strong>API配置：</strong>轮换次数、重试设置、自动封禁</li>
-                                    <li><strong>密码配置：</strong>API密码、面板密码</li>
-                                    <li><strong>功能配置：</strong>抗截断重试次数</li>
+                                    <li><strong>Red:</strong> proxy, endpoints, tiempos de espera y conexiones</li>
+                                    <li><strong>API:</strong> rotaciones, reintentos y bloqueo automático</li>
+                                    <li><strong>Contraseñas:</strong> de la API y del panel</li>
+                                    <li><strong>Funciones:</strong> reintentos de antitruncamiento</li>
                                 </ul>
                             </div>
 
                             <div
                                 style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px; font-size: 13px; color: #856404; margin-bottom: 10px;">
-                                <strong>🔄 需要重启的配置：</strong>
+                                <strong>🔄 Requieren reiniciar:</strong>
                                 <ul style="margin: 8px 0; padding-left: 20px; color: #212529;">
-                                    <li><strong>服务器配置：</strong>主机地址、端口号</li>
-                                    <li><strong>文件路径：</strong>凭证目录</li>
+                                    <li><strong>Servidor:</strong> host y puerto</li>
+                                    <li><strong>Rutas:</strong> directorio de credenciales</li>
                                 </ul>
                             </div>
 
@@ -2016,124 +2016,124 @@
             </div>
 
             <div id="logsTab" class="tab-content">
-                <h3>实时日志</h3>
-                <p>查看系统实时日志输出，支持日志筛选和自动滚动</p>
+                <h3>Registro en tiempo real</h3>
+                <p>Consulta los logs del sistema en tiempo real, con filtros y desplazamiento automático</p>
 
                 <div style="display: flex; gap: 8px; margin: 15px 0; flex-wrap: wrap;">
-                    <button class="btn btn-small" onclick="connectWebSocket()">连接日志流</button>
-                    <button class="btn btn-small" onclick="disconnectWebSocket()">断开连接</button>
-                    <button class="btn btn-small" onclick="downloadLogs()">下载日志</button>
-                    <button class="btn btn-small" onclick="clearLogs()">清空日志</button>
+                    <button class="btn btn-small" onclick="connectWebSocket()">Conectar</button>
+                    <button class="btn btn-small" onclick="disconnectWebSocket()">Desconectar</button>
+                    <button class="btn btn-small" onclick="downloadLogs()">Descargar</button>
+                    <button class="btn btn-small" onclick="clearLogs()">Vaciar</button>
                 </div>
 
                 <div
                     style="background-color: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 12px; margin: 15px 0;">
                     <div class="form-group" style="margin-bottom: 8px;">
-                        <label for="logLevelFilter">日志级别筛选:</label>
+                        <label for="logLevelFilter">Nivel de registro:</label>
                         <select id="logLevelFilter" onchange="filterLogs()">
-                            <option value="all">全部</option>
-                            <option value="ERROR">错误</option>
-                            <option value="WARNING">警告</option>
-                            <option value="INFO">信息</option>
-                            <option value="DEBUG">调试</option>
+                            <option value="all">Todos</option>
+                            <option value="ERROR">Error</option>
+                            <option value="WARNING">Aviso</option>
+                            <option value="INFO">Información</option>
+                            <option value="DEBUG">Depuración</option>
                         </select>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
                         <label style="display: flex; align-items: center; cursor: pointer;">
                             <input type="checkbox" id="autoScroll" checked style="margin-right: 8px;" />
-                            自动滚动到底部
+                            Desplazar automáticamente
                         </label>
                     </div>
                 </div>
 
                 <div id="logConnectionStatus" class="status info">
-                    <strong>连接状态：</strong> <span id="connectionStatusText">未连接</span>
+                    <strong>Estado de la conexión:</strong> <span id="connectionStatusText">Sin conectar</span>
                 </div>
 
                 <div id="logContainer"
                     style="background-color: #1e1e1e; color: #ffffff; font-family: 'Courier New', monospace; font-size: 12px; height: 600px; overflow-y: auto; border: 1px solid #333; border-radius: 5px; padding: 15px; white-space: pre-wrap; word-break: break-all;">
-                    <div id="logContent">等待连接日志流...</div>
+                    <div id="logContent">Esperando conexión con el registro...</div>
                 </div>
             </div>
 
-            <!-- 项目信息标签页 -->
+            <!-- Pestaña de información del proyecto -->
             <div id="aboutTab" class="tab-content">
-                <h3>项目信息</h3>
-                <p>关于GCLI2API项目的详细信息</p>
+                <h3>Información del proyecto</h3>
+                <p>Detalles sobre el proyecto GCLI2API</p>
 
-                <!-- 项目介绍 -->
+                <!-- Presentación del proyecto -->
                 <div class="card">
-                    <h4 style="margin-top: 0; color: #007bff;">📋 项目简介</h4>
+                    <h4 style="margin-top: 0; color: #007bff;">📋 Descripción</h4>
                     <p style="margin: 10px 0; line-height: 1.6; color: #495057; font-size: 14px;">
-                        GCLI2API是一个将Google Gemini API转换为OpenAI 和GEMINI API格式的代理工具，支持多账户管理、自动轮换、实时日志监控等功能。
+                        GCLI2API es un proxy que convierte la API de Google Gemini a los formatos de OpenAI y GEMINI, con gestión multicuenta, rotación automática y monitorización de logs en tiempo real.
                     </p>
                     <div style="margin: 15px 0; font-size: 14px;">
-                        <p style="margin: 5px 0;"><strong>🔗 项目地址：</strong> <a
+                        <p style="margin: 5px 0;"><strong>🔗 Repositorio:</strong> <a
                                 href="https://github.com/su-kaka/gcli2api" target="_blank"
                                 style="color: #007bff; text-decoration: none;">GitHub - su-kaka/gcli2api</a></p>
-                        <p style="margin: 5px 0;"><strong>⚠️ 使用声明：</strong> <span
-                                style="color: #dc3545; font-weight: 500;">禁止商业用途和倒卖 - 仅供学习使用</span></p>
+                        <p style="margin: 5px 0;"><strong>⚠️ Aviso de uso:</strong> <span
+                                style="color: #dc3545; font-weight: 500;">Prohibido el uso comercial y la reventa: solo con fines educativos</span></p>
                     </div>
                 </div>
 
-                <!-- 功能特性 -->
+                <!-- Características -->
                 <div class="card">
-                    <h4 style="margin-top: 0; color: #17a2b8;">✨ 主要功能</h4>
+                    <h4 style="margin-top: 0; color: #17a2b8;">✨ Funciones principales</h4>
                     <div style="font-size: 14px; line-height: 1.6;">
-                        <p><strong>🔄 多账户管理：</strong> 支持批量上传和管理多个Google账户</p>
-                        <p><strong>⚡ 自动轮换：</strong> 智能轮换账户，避免单账户限额</p>
-                        <p><strong>📊 实时监控：</strong> 使用统计、错误监控、实时日志</p>
-                        <p><strong>🛡️ 安全可靠：</strong> OAuth2认证、自动封禁异常账户</p>
-                        <p><strong>🎛️ 配置灵活：</strong> 支持热更新配置、代理设置</p>
-                        <p><strong>📱 界面友好：</strong> 响应式设计、移动端适配</p>
+                        <p><strong>🔄 Multicuenta:</strong> subida y gestión masiva de varias cuentas de Google</p>
+                        <p><strong>⚡ Rotación automática:</strong> rota las cuentas para evitar los límites de una sola</p>
+                        <p><strong>📊 Monitorización:</strong> estadísticas de uso, control de errores y logs en tiempo real</p>
+                        <p><strong>🛡️ Seguridad:</strong> autenticación OAuth2 y bloqueo automático de cuentas con fallos</p>
+                        <p><strong>🎛️ Flexibilidad:</strong> ajustes en caliente y configuración de proxy</p>
+                        <p><strong>📱 Interfaz cuidada:</strong> diseño responsive y adaptado a móvil</p>
                     </div>
                 </div>
 
-                <!-- 交流群 -->
+                <!-- Grupo de la comunidad -->
                 <div class="card" style="border-left: 4px solid #4285f4; text-align: center;">
-                    <h4 style="margin-top: 0; color: #1976d2;">💬 交流群</h4>
+                    <h4 style="margin-top: 0; color: #1976d2;">💬 Comunidad</h4>
                     <div style="color: #1565c0; line-height: 1.6; font-size: 14px;">
-                        <p>欢迎加入 QQ 群交流讨论！</p>
-                        <p style="font-size: 16px; font-weight: bold; color: #4285f4;">QQ 群号：1083250744</p>
+                        <p>¡Únete al grupo de QQ para comentar y resolver dudas!</p>
+                        <p style="font-size: 16px; font-weight: bold; color: #4285f4;">Grupo de QQ: 1083250744</p>
                     </div>
                     <div
                         style="display: inline-block; background: white; padding: 12px; border-radius: 10px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); margin-top: 10px;">
-                        <img src="docs/qq群.jpg" alt="QQ群二维码"
+                        <img src="docs/qq群.jpg" alt="Código QR del grupo de QQ"
                             style="width: 180px; height: 180px; border-radius: 6px; display: block;">
                         <p
                             style="color: #666; margin: 8px 0 0 0; font-size: 12px; font-weight: 600; text-align: center;">
-                            扫码加入QQ群</p>
+                            Escanea para unirte al grupo de QQ</p>
                     </div>
                 </div>
 
-                <!-- 联系和反馈 -->
+                <!-- Contacto y sugerencias -->
                 <div class="card">
-                    <h4 style="margin-top: 0; color: #0c5460;">📞 联系我们</h4>
+                    <h4 style="margin-top: 0; color: #0c5460;">📞 Contacto</h4>
                     <div style="color: #0c5460; line-height: 1.6; font-size: 14px;">
-                        <p>• <strong>问题反馈：</strong> 通过GitHub Issues提交问题和建议</p>
-                        <p>• <strong>功能请求：</strong> 在GitHub Discussions中讨论新功能</p>
-                        <p>• <strong>代码贡献：</strong> 欢迎提交Pull Request改进项目</p>
-                        <p>• <strong>文档完善：</strong> 帮助改进项目文档和使用指南</p>
+                        <p>• <strong>Incidencias:</strong> envía problemas y sugerencias por GitHub Issues</p>
+                        <p>• <strong>Nuevas funciones:</strong> propónlas en GitHub Discussions</p>
+                        <p>• <strong>Código:</strong> se agradecen las Pull Requests que mejoren el proyecto</p>
+                        <p>• <strong>Documentación:</strong> ayuda a mejorar la documentación y las guías</p>
                     </div>
                 </div>
             </div>
 
             <div id="statusSection"></div>
 
-            <!-- 项目信息 -->
+            <!-- Información del proyecto -->
             <div
                 style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 10px; margin-top: 20px; text-align: center; border-left: 4px solid #007bff;">
                 <p style="margin: 4px 0; font-size: 12px; color: #495057;">GitHub: <a
                         href="https://github.com/su-kaka/gcli2api" target="_blank"
                         style="color: #007bff; text-decoration: none;">github.com/su-kaka/gcli2api</a></p>
-                <p style="margin: 4px 0; font-size: 12px; color: #dc3545; font-weight: 500;">⚠️ 禁止商业用途和倒卖 - 仅供学习使用 ⚠️
+                <p style="margin: 4px 0; font-size: 12px; color: #dc3545; font-weight: 500;">⚠️ Prohibido el uso comercial y la reventa: solo con fines educativos ⚠️
                 </p>
             </div>
         </div>
     </div>
 
-    <!-- 引入公共JavaScript模块 -->
+    <!-- Módulo JavaScript común -->
     <script src="./front/common.js"></script>
 </body>
 
