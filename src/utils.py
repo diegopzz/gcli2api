@@ -1,3 +1,4 @@
+import secrets
 from typing import List, Optional
 
 from config import get_api_password, get_panel_password
@@ -197,7 +198,11 @@ async def authenticate_flexible(
             # token 已验证通过
             pass
     """
-    password = await get_api_password()
+    # API_PASSWORD 支持逗号分隔的多个密钥，便于按项目签发/吊销独立的 key。
+    # 单个密钥（不含逗号）时行为与之前完全一致。
+    allowed_passwords = [
+        p.strip() for p in (await get_api_password()).split(",") if p.strip()
+    ]
     token = None
     auth_method = None
 
@@ -250,8 +255,8 @@ async def authenticate_flexible(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # 验证 token
-    if token != password:
+    # 验证 token：使用固定时间比较，避免通过响应耗时逐字节猜测密钥
+    if not any(secrets.compare_digest(token, p) for p in allowed_passwords):
         log.debug(f"Authentication failed using {auth_method}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
