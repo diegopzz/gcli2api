@@ -659,10 +659,17 @@ def map_antigravity_gemini_model(model_name: str, thinking_level: Optional[str],
         "gemini-3.1-pro-low", "gemini-pro-agent",
         "gemini-3.1-flash-lite", "gemini-3.1-flash-image",
         "gemini-3.5-flash-low", "gemini-3.5-flash-extra-low",
+        "gemini-3.6-flash-high", "gemini-3.6-flash-medium",
+        "gemini-3.6-flash-low", "gemini-3.6-flash-tiered",
         "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-flash-thinking",
         "tab_flash_lite_preview", "tab_jump_flash_lite_preview", "gpt-oss-120b-medium",
         "chat_20706", "chat_23310"
     }
+
+    # Some Antigravity model IDs use suffixes like "-high" as part of the
+    # backend model name. Preserve those exact IDs before generic suffix logic.
+    if model_lower in exact_models:
+        return model_lower
     
     base_model = get_base_model_name(model_lower)
     
