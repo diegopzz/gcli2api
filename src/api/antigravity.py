@@ -127,12 +127,17 @@ async def wrap_cli_request(
     # 注入 labels
     inner["labels"] = _build_labels(model, session_id, 1)
 
-    # toolConfig 默认 VALIDATED
-    tool_config = inner.get("toolConfig") or {}
-    func_config = tool_config.get("functionCallingConfig") or {}
-    func_config["mode"] = "VALIDATED"
-    tool_config["functionCallingConfig"] = func_config
-    inner["toolConfig"] = tool_config
+    # Function calling is unsupported by image-generation models.
+    # Keep the default VALIDATED tool mode for agent/chat models only.
+    if "image" not in model.lower():
+        tool_config = inner.get("toolConfig") or {}
+        func_config = tool_config.get("functionCallingConfig") or {}
+        func_config["mode"] = "VALIDATED"
+        tool_config["functionCallingConfig"] = func_config
+        inner["toolConfig"] = tool_config
+    else:
+        inner.pop("tools", None)
+        inner.pop("toolConfig", None)
 
     request_id = _generate_request_id()
 

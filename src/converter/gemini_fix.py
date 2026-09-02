@@ -526,6 +526,7 @@ def prepare_image_generation_request(
     request_body["model"] = "gemini-3.1-flash-image"  # 统一使用基础模型名
     request_body["generationConfig"] = {
         "candidateCount": 1,
+        "responseModalities": ["IMAGE"],
         "imageConfig": image_config
     }
 
