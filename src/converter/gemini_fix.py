@@ -662,6 +662,10 @@ def map_antigravity_gemini_model(model_name: str, thinking_level: Optional[str],
         "gemini-3.5-flash-low", "gemini-3.5-flash-extra-low",
         "gemini-3.6-flash-high", "gemini-3.6-flash-medium",
         "gemini-3.6-flash-low", "gemini-3.6-flash-tiered",
+        "gemini-3.7-flash-high", "gemini-3.7-flash-medium",
+        "gemini-3.7-flash-low", "gemini-3.7-flash-tiered",
+        "gemini-3.8-flash-high", "gemini-3.8-flash-medium",
+        "gemini-3.8-flash-low",
         "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-flash-thinking",
         "tab_flash_lite_preview", "tab_jump_flash_lite_preview", "gpt-oss-120b-medium",
         "chat_20706", "chat_23310"
@@ -941,7 +945,14 @@ async def normalize_gemini_request(
 
         # 5. 模型特殊处理：循环移除末尾的 model 消息，保证以用户消息结尾
         # 因为该模型不支持预填充
-        if "claude-opus-4-6-thinking" in model.lower() or "claude-sonnet-4-6" in model.lower():
+        no_prefill_models = (
+            "claude-opus-4-6-thinking",
+            "claude-sonnet-4-6",
+            "gemini-3.6-flash",
+            "gemini-3.7-flash",
+            "gemini-3.8-flash",
+        )
+        if any(keyword in model.lower() for keyword in no_prefill_models):
             contents = result.get("contents", [])
             removed_count = 0
             while contents and isinstance(contents[-1], dict) and contents[-1].get("role") == "model":
