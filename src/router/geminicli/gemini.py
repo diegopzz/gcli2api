@@ -37,7 +37,7 @@ from src.converter.fake_stream import (
 )
 
 # 本地模块 - 基础路由工具
-from src.router.hi_check import is_health_check_request, create_health_check_response
+from src.router.hi_check import find_empty_request_reason, is_health_check_request, create_health_check_response
 from src.router.stream_passthrough import (
     build_streaming_response_or_error,
     prepend_async_item,
@@ -77,6 +77,15 @@ async def generate_content(
 
     # 转换为字典
     normalized_dict = model_to_dict(gemini_request)
+
+    # 空请求本地拒绝：不花凭证、不污染凭证错误状态。见 BYT-918。
+    empty_reason = find_empty_request_reason(normalized_dict, format="gemini")
+    if empty_reason:
+        log.warning(f"[GEMINICLI] 拒绝空请求 (model={model}): {empty_reason}")
+        return JSONResponse(
+            status_code=400,
+            content={"error": {"code": 400, "message": empty_reason, "status": "INVALID_ARGUMENT"}},
+        )
 
     # 健康检查
     if is_health_check_request(normalized_dict, format="gemini"):
@@ -142,6 +151,15 @@ async def stream_generate_content(
 
     # 转换为字典
     normalized_dict = model_to_dict(gemini_request)
+
+    # 空请求本地拒绝：不花凭证、不污染凭证错误状态。见 BYT-918。
+    empty_reason = find_empty_request_reason(normalized_dict, format="gemini")
+    if empty_reason:
+        log.warning(f"[GEMINICLI] 拒绝空请求 (model={model}): {empty_reason}")
+        return JSONResponse(
+            status_code=400,
+            content={"error": {"code": 400, "message": empty_reason, "status": "INVALID_ARGUMENT"}},
+        )
 
     # 处理模型名称和功能检测
     use_fake_streaming = is_fake_streaming_model(model)

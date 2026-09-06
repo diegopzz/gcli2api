@@ -4,6 +4,7 @@
 保持通用性，不与特定业务逻辑耦合
 """
 
+import os
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Dict, Optional
 
@@ -11,6 +12,41 @@ import httpx
 
 from config import get_proxy_config
 from log import log
+
+
+def _env_float(name: str, default: float) -> float:
+    """读取浮点环境变量，非法值回退到默认值"""
+    raw = os.getenv(name)
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        log.warning(f"Invalid {name}={raw!r}, using default {default}")
+        return default
+
+
+def default_stream_timeout() -> httpx.Timeout:
+    """流式请求的超时配置。
+
+    ``read`` 是**块与块之间**允许的最大间隔，不是整个响应的上限，所以长生成
+    只要上游持续吐字节就不会被切断。
+
+    历史上这里传的是 ``timeout=None``（完全无超时）。上游接受连接后保持静默时，
+    ``stream_post_async`` 既不产出数据也不抛异常，于是 ``src/api/*.py`` 的重试循环
+    永远等下去：没有 chunk 可转发、没有异常触发换凭证重试、凭证槽位一直被占用。
+    客户端只看到“网关卡住了”。见 BYT-918。
+
+    默认值刻意给得很宽：宁可让慢模型多等，也不要把还在思考的请求提前切断。这里要防的
+    只是“永远等下去”，不是“等得久”。read=600 意味着上游连续 600 秒一个字节都不吐才判定
+    卡死；正常回复通常 7-10 秒就结束。
+    """
+    return httpx.Timeout(
+        connect=_env_float("STREAM_CONNECT_TIMEOUT", 30.0),
+        read=_env_float("STREAM_READ_TIMEOUT", 600.0),
+        write=_env_float("STREAM_WRITE_TIMEOUT", 300.0),
+        pool=_env_float("STREAM_POOL_TIMEOUT", 60.0),
+    )
 
 
 class HttpxClientManager:
@@ -39,9 +75,15 @@ class HttpxClientManager:
 
     @asynccontextmanager
     async def get_streaming_client(
-        self, timeout: float = None, **kwargs
+        self, timeout: Any = None, **kwargs
     ) -> AsyncGenerator[httpx.AsyncClient, None]:
-        """获取用于流式请求的HTTP客户端（无超时限制）"""
+        """获取用于流式请求的HTTP客户端。
+
+        ``timeout=None`` 表示使用 :func:`default_stream_timeout`（有界超时），
+        而不是 httpx 的“永不超时”。要显式取消超时必须传 ``httpx.Timeout(None)``。
+        """
+        if timeout is None:
+            timeout = default_stream_timeout()
         client_kwargs = await self.get_client_kwargs(timeout=timeout, **kwargs)
 
         # 创建独立的客户端实例用于流式处理
