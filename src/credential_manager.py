@@ -25,6 +25,14 @@ class CredentialManager:
 
         # 并发控制（简化）
         # 后端数据库自行处理并发，credential_manager 不再使用本地锁
+        #
+        # 例外：token 刷新必须在本进程内按凭证合并。_should_refresh_token 在到期前
+        # 5 分钟就返回 True，所以同时选中同一凭证的 N 个请求会各自去 Google 换一次
+        # token —— 日志里出现过同一个文件在两秒内刷新约 20 次。每个请求都要为此付一次
+        # 往返，而并发刷新在轮换型 token 端点上还会互相作废，随后表现为 401、凭证被自动
+        # 禁用、可用凭证变少、429 变多。见 BYT-918。
+        self._refresh_locks: Dict[str, asyncio.Lock] = {}
+        self._refresh_locks_guard = asyncio.Lock()
 
     async def _ensure_initialized(self):
         """确保管理器已初始化（内部使用）"""
@@ -355,11 +363,46 @@ class CredentialManager:
             log.error(f"检查token过期时出错: {e}")
             return True
 
+    async def _get_refresh_lock(self, mode: str, filename: str) -> asyncio.Lock:
+        """取得某个凭证的刷新锁，按需创建"""
+        key = f"{mode}:{filename}"
+        async with self._refresh_locks_guard:
+            lock = self._refresh_locks.get(key)
+            if lock is None:
+                lock = asyncio.Lock()
+                self._refresh_locks[key] = lock
+            return lock
+
     async def _refresh_token(
         self, credential_data: Dict[str, Any], filename: str, mode: str = "geminicli"
     ) -> Optional[Dict[str, Any]]:
-        """刷新token并更新存储"""
+        """刷新token并更新存储。
+
+        同一凭证的并发刷新合并为一次：先拿到该凭证的锁，再重新读一次存储做双重检查
+        —— 等锁期间别的协程可能已经刷好了，直接复用即可。见 BYT-918。
+        """
         await self._ensure_initialized()
+        lock = await self._get_refresh_lock(mode, filename)
+        if lock.locked():
+            log.debug(f"Token刷新已在进行中，等待合并: {filename} (mode={mode})")
+
+        async with lock:
+            try:
+                stored = await self._storage_adapter.get_credential(filename, mode=mode)
+            except Exception as e:
+                log.debug(f"双重检查读取凭证失败 {filename} (mode={mode}): {e}")
+                stored = None
+
+            if stored and not await self._should_refresh_token(stored):
+                log.debug(f"Token已由并发请求刷新，复用: {filename} (mode={mode})")
+                return stored
+
+            return await self._refresh_token_locked(credential_data, filename, mode=mode)
+
+    async def _refresh_token_locked(
+        self, credential_data: Dict[str, Any], filename: str, mode: str = "geminicli"
+    ) -> Optional[Dict[str, Any]]:
+        """实际执行刷新；调用方必须持有该凭证的刷新锁"""
         try:
             # 创建Credentials对象
             creds = Credentials.from_dict(credential_data)

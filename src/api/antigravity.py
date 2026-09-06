@@ -440,6 +440,14 @@ async def stream_request(
 
         except Exception as e:
             log.error(f"[ANTIGRAVITY STREAM] 流式请求异常: {e}, 凭证: {current_file}")
+            # 已经有内容下发给客户端了：重试会从头重放整个回复，客户端拿到的就是
+            # 重复内容。这里只能结束这次流（客户端会看到截断），不能重试。
+            # 加上流式读超时后，中途异常变得更常见，所以这个分支是必须的。见 BYT-918。
+            if success_recorded:
+                log.error(
+                    f"[ANTIGRAVITY STREAM] 已下发部分内容，异常后不重试以免重复，结束流: {e}"
+                )
+                return
             if attempt < max_retries:
                 log.info(f"[ANTIGRAVITY STREAM] 异常后重试 (attempt {attempt + 2}/{max_retries + 1})...")
                 await asyncio.sleep(retry_interval)
