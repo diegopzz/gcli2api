@@ -36,12 +36,16 @@ def default_stream_timeout() -> httpx.Timeout:
     ``stream_post_async`` 既不产出数据也不抛异常，于是 ``src/api/*.py`` 的重试循环
     永远等下去：没有 chunk 可转发、没有异常触发换凭证重试、凭证槽位一直被占用。
     客户端只看到“网关卡住了”。见 BYT-918。
+
+    默认值刻意给得很宽：宁可让慢模型多等，也不要把还在思考的请求提前切断。这里要防的
+    只是“永远等下去”，不是“等得久”。read=600 意味着上游连续 600 秒一个字节都不吐才判定
+    卡死；正常回复通常 7-10 秒就结束。
     """
     return httpx.Timeout(
-        connect=_env_float("STREAM_CONNECT_TIMEOUT", 15.0),
-        read=_env_float("STREAM_READ_TIMEOUT", 90.0),
-        write=_env_float("STREAM_WRITE_TIMEOUT", 60.0),
-        pool=_env_float("STREAM_POOL_TIMEOUT", 15.0),
+        connect=_env_float("STREAM_CONNECT_TIMEOUT", 30.0),
+        read=_env_float("STREAM_READ_TIMEOUT", 600.0),
+        write=_env_float("STREAM_WRITE_TIMEOUT", 300.0),
+        pool=_env_float("STREAM_POOL_TIMEOUT", 60.0),
     )
 
 

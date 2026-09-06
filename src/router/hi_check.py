@@ -4,7 +4,7 @@
 提供对OpenAI、Gemini和Anthropic格式的Hi消息的解析和响应
 """
 import time
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 # ==================== Hi消息检测 ====================
@@ -46,6 +46,32 @@ def is_health_check_request(request_data: dict, format: str = "openai") -> bool:
             return True
     
     return False
+
+
+def find_empty_request_reason(request_data: dict, format: str = "openai") -> Optional[str]:
+    """返回“这个请求上游必定拒绝”的原因，能正常处理则返回 None。
+
+    空请求不是一次廉价的探活。它会走完整条链路：刷新 token、占用一个凭证、发一次上游
+    往返、拿回 Google 的 400 INVALID_ARGUMENT，最后把 error_codes:[400] 写到一个完全
+    健康的凭证上。2026-09-06 就有一个 node 客户端用空 contents 扫了约 40 个模型，于是
+    面板里每个凭证看起来都在报错，而模型本身其实好好的（同样的模型换成正常 body 直接
+    返回 200）。
+
+    在本地直接拒掉，既不花凭证，也不污染凭证状态。注意这不同于
+    :func:`is_health_check_request`：那是“假装成功”的探活捷径，而这里是客户端确实发错了，
+    必须让它看到 400。见 BYT-918。
+    """
+    if format == "gemini":
+        contents = request_data.get("contents")
+        if not contents:
+            return "contents must not be empty"
+        if all(not (item or {}).get("parts") for item in contents):
+            return "contents must contain at least one part"
+    elif format in ("openai", "anthropic"):
+        messages = request_data.get("messages")
+        if not messages:
+            return "messages must not be empty"
+    return None
 
 
 def is_health_check_message(messages: List[Dict[str, Any]]) -> bool:
