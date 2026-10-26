@@ -162,6 +162,15 @@ app.include_router(antigravity_model_list_router, prefix="", tags=["Antigravity 
 # Antigravity Anthropic Messages 路由 - Anthropic Messages 格式兼容
 app.include_router(antigravity_anthropic_router, prefix="", tags=["Antigravity Anthropic Messages"])
 
+# 兼容旧版 gcli2api 的 /antigravity 前缀，现有客户端无需改 base URL
+for _compat_router in (
+    antigravity_openai_router,
+    antigravity_gemini_router,
+    antigravity_model_list_router,
+    antigravity_anthropic_router,
+):
+    app.include_router(_compat_router, prefix="/antigravity", include_in_schema=False)
+
 # Panel路由 - 包含认证、凭证管理和控制面板功能
 app.include_router(panel_router, prefix="", tags=["Panel Interface"])
 
