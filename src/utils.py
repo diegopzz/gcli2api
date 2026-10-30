@@ -1,4 +1,7 @@
-from typing import List, Optional
+import secrets
+from typing import Optional
+
+import httpx
 
 from config import get_api_password, get_panel_password
 from fastapi import Depends, HTTPException, Header, Query, Request, status
@@ -10,33 +13,45 @@ security = HTTPBearer()
 
 # ====================== OAuth Configuration ======================
 
-_GEMINICLI_VERSION = "0.55.1"
-_GEMINICLI_PLATFORM = "win32"
-_GEMINICLI_ARCH = "x64"
-_GEMINICLI_SURFACE = "cloud-shell"
-
-def get_geminicli_user_agent(model: str = "") -> str:
-    """生成动态 User-Agent: GeminiCLI/{version}/{model} ({platform}; {arch}; {surface})"""
-    if model:
-        return f"GeminiCLI/{_GEMINICLI_VERSION}/{model} ({_GEMINICLI_PLATFORM}; {_GEMINICLI_ARCH}; {_GEMINICLI_SURFACE})"
-    return f"GeminiCLI/{_GEMINICLI_VERSION} ({_GEMINICLI_PLATFORM}; {_GEMINICLI_ARCH}; {_GEMINICLI_SURFACE})"
-
-# 静态常量
-GEMINICLI_USER_AGENT = get_geminicli_user_agent()
-
 # Antigravity CLI 客户端仿真常量
-ANTIGRAVITY_CLI_VERSION = "1.1.12"
+_DEFAULT_ANTIGRAVITY_CLI_VERSION = "1.4.7"
+_LATEST_RELEASE_URL = (
+    "https://api.github.com/repos/google-antigravity/antigravity-cli/releases/latest"
+)
+
+
+def _get_latest_antigravity_cli_version() -> str:
+    """获取最新 Antigravity CLI 版本；获取失败时返回默认版本。"""
+    try:
+        response = httpx.get(
+            _LATEST_RELEASE_URL,
+            headers={"Accept": "application/vnd.github+json"},
+            timeout=10.0,
+        )
+        response.raise_for_status()
+        release_data = response.json()
+    except (httpx.HTTPError, ValueError) as error:
+        log.warning(
+            "获取最新 Antigravity CLI 版本失败，使用默认版本 "
+            f"{_DEFAULT_ANTIGRAVITY_CLI_VERSION}: {error}"
+        )
+        return _DEFAULT_ANTIGRAVITY_CLI_VERSION
+
+    tag_name = release_data.get("tag_name") if isinstance(release_data, dict) else None
+    if not isinstance(tag_name, str) or not tag_name.strip():
+        log.warning(
+            "GitHub API 响应中没有有效的 tag_name，使用默认版本 "
+            f"{_DEFAULT_ANTIGRAVITY_CLI_VERSION}"
+        )
+        return _DEFAULT_ANTIGRAVITY_CLI_VERSION
+
+    return tag_name.strip().lstrip("vV")
+
+
+ANTIGRAVITY_CLI_VERSION = _get_latest_antigravity_cli_version()
 ANTIGRAVITY_CLI_PLATFORM = "windows/amd64"
 ANTIGRAVITY_USER_AGENT = f"antigravity/cli/{ANTIGRAVITY_CLI_VERSION} {ANTIGRAVITY_CLI_PLATFORM}"
-
-# OAuth Configuration - 标准模式
-CLIENT_ID = "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com"
-CLIENT_SECRET = "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"
-SCOPES = [
-    "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/userinfo.email",
-    "https://www.googleapis.com/auth/userinfo.profile",
-]
+log.info(f"当前 Antigravity CLI 版本: {ANTIGRAVITY_CLI_VERSION}")
 
 # Antigravity OAuth Configuration
 ANTIGRAVITY_CLIENT_ID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com"
@@ -55,96 +70,22 @@ TOKEN_URL = "https://oauth2.googleapis.com/token"
 # 回调服务器配置
 CALLBACK_HOST = "localhost"
 
-# Model name lists for different features
-BASE_MODELS = [
-    "gemini-2.5-pro",
-    "gemini-2.5-flash",
-    "gemini-3-flash-preview",
-    "gemini-3.1-pro-preview",
-    "gemini-3.1-flash-lite",
-    "gemini-3.5-flash",
-]
-
-
 # ====================== Model Helper Functions ======================
 
-def is_fake_streaming_model(model_name: str) -> bool:
-    """Check if model name indicates fake streaming should be used."""
-    return model_name.startswith("假流式/")
+# 抗截断模型前缀
+_ANTI_TRUNCATION_PREFIX = "抗截断-"
 
 
 def is_anti_truncation_model(model_name: str) -> bool:
     """Check if model name indicates anti-truncation should be used."""
-    return model_name.startswith("流式抗截断/")
+    return model_name.startswith(_ANTI_TRUNCATION_PREFIX)
 
 
 def get_base_model_from_feature_model(model_name: str) -> str:
     """Get base model name from feature model name."""
-    # Remove feature prefixes
-    for prefix in ["假流式/", "流式抗截断/"]:
-        if model_name.startswith(prefix):
-            return model_name[len(prefix) :]
+    if model_name.startswith(_ANTI_TRUNCATION_PREFIX):
+        return model_name[len(_ANTI_TRUNCATION_PREFIX) :]
     return model_name
-
-
-def get_available_models(router_type: str = "openai") -> List[str]:
-    """
-    Get available models with feature prefixes.
-
-    Args:
-        router_type: "openai" or "gemini"
-
-    Returns:
-        List of model names with feature prefixes
-    """
-    models = []
-
-    for base_model in BASE_MODELS:
-        # 基础模型
-        models.append(base_model)
-
-        # 假流式模型 (前缀格式)
-        models.append(f"假流式/{base_model}")
-
-        # 流式抗截断模型 (仅在流式传输时有效，前缀格式)
-        models.append(f"流式抗截断/{base_model}")
-
-        # 定义思考后缀（根据模型系列不同）
-        thinking_suffixes = []
-
-        # Gemini 2.5 系列: 使用思考预算后缀
-        if "gemini-2.5" in base_model:
-            thinking_suffixes = ["-max", "-high", "-medium", "-low", "-minimal"]
-        # Gemini 3 系列: 使用思考等级后缀
-        elif "gemini-3" in base_model:
-            if "flash" in base_model:
-                # 3-flash-preview: 支持 high/medium/low/minimal
-                thinking_suffixes = ["-high", "-medium", "-low", "-minimal"]
-            elif "pro" in base_model:
-                # 3-pro-preview: 支持 high/low
-                thinking_suffixes = ["-high", "-low"]
-
-        search_suffix = "-search"
-
-        # 1. 单独的 thinking 后缀
-        for thinking_suffix in thinking_suffixes:
-            models.append(f"{base_model}{thinking_suffix}")
-            models.append(f"假流式/{base_model}{thinking_suffix}")
-            models.append(f"流式抗截断/{base_model}{thinking_suffix}")
-
-        # 2. 单独的 search 后缀
-        models.append(f"{base_model}{search_suffix}")
-        models.append(f"假流式/{base_model}{search_suffix}")
-        models.append(f"流式抗截断/{base_model}{search_suffix}")
-
-        # 3. thinking + search 组合后缀
-        for thinking_suffix in thinking_suffixes:
-            combined_suffix = f"{thinking_suffix}{search_suffix}"
-            models.append(f"{base_model}{combined_suffix}")
-            models.append(f"假流式/{base_model}{combined_suffix}")
-            models.append(f"流式抗截断/{base_model}{combined_suffix}")
-
-    return models
 
 
 # ====================== Authentication Functions ======================
@@ -195,7 +136,11 @@ async def authenticate_flexible(
             # token 已验证通过
             pass
     """
-    password = await get_api_password()
+    # API_PASSWORD 支持逗号分隔的多个密钥，便于按项目签发/吊销独立的 key。
+    # 单个密钥（不含逗号）时行为与之前完全一致。
+    allowed_passwords = [
+        p.strip() for p in (await get_api_password()).split(",") if p.strip()
+    ]
     token = None
     auth_method = None
 
@@ -248,8 +193,8 @@ async def authenticate_flexible(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # 验证 token
-    if token != password:
+    # 验证 token：使用固定时间比较，避免通过响应耗时逐字节猜测密钥
+    if not any(secrets.compare_digest(token, p) for p in allowed_passwords):
         log.debug(f"Authentication failed using {auth_method}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
