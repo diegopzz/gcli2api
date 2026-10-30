@@ -32,9 +32,9 @@ async def login(request: LoginRequest):
     try:
         if await verify_password(request.password):
             # 直接使用密码作为token，简化认证流程
-            return JSONResponse(content={"token": request.password, "message": "登录成功"})
+            return JSONResponse(content={"token": request.password, "message": "Logged in"})
         else:
-            raise HTTPException(status_code=401, detail="密码错误")
+            raise HTTPException(status_code=401, detail="Wrong password")
     except HTTPException:
         raise
     except Exception as e:
@@ -97,7 +97,7 @@ async def auth_callback(request: AuthCallbackRequest, token: str = Depends(verif
                     "credentials": result["credentials"],
                     "email": result.get("email", ""),
                     "tier": result.get("tier"),
-                    "message": "认证成功，凭证已保存",
+                    "message": "Authenticated, credential saved",
                     "auto_detected_project": result.get("auto_detected_project", False),
                 }
             )
@@ -135,7 +135,7 @@ async def auth_callback_url(request: AuthCallbackUrlRequest, token: str = Depend
     try:
         # 验证URL格式
         if not request.callback_url or not request.callback_url.startswith(("http://", "https://")):
-            raise HTTPException(status_code=400, detail="请提供有效的回调URL")
+            raise HTTPException(status_code=400, detail="Provide a valid callback URL")
 
         # 从回调URL完成认证
         result = await complete_auth_flow_from_callback_url(
@@ -149,7 +149,7 @@ async def auth_callback_url(request: AuthCallbackUrlRequest, token: str = Depend
                     "credentials": result["credentials"],
                     "email": result.get("email", ""),
                     "tier": result.get("tier"),
-                    "message": "从回调URL认证成功，凭证已保存",
+                    "message": "Authenticated from callback URL, credential saved",
                     "auto_detected_project": result.get("auto_detected_project", False),
                 }
             )
@@ -184,7 +184,7 @@ async def check_auth_status(project_id: str, token: str = Depends(verify_panel_t
     """检查认证状态"""
     try:
         if not project_id:
-            raise HTTPException(status_code=400, detail="Project ID 不能为空")
+            raise HTTPException(status_code=400, detail="Project ID cannot be empty")
 
         status = get_auth_status(project_id)
         return JSONResponse(content=status)

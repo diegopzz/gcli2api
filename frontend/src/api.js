@@ -5,7 +5,7 @@ const api = axios.create({
   timeout: 120000,
 });
 
-// 请求拦截器 - 添加token
+// Request interceptor - attach token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("panelToken");
   if (token) {
@@ -14,7 +14,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// 响应拦截器 - 处理错误
+// Response interceptor - handle errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {

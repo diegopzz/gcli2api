@@ -29,7 +29,7 @@ async def get_version_info(check_update: bool = False):
         if not os.path.exists(version_file):
             return JSONResponse({
                 "success": False,
-                "error": "version.txt文件不存在"
+                "error": "version.txt not found"
             })
 
         version_data = {}
@@ -44,7 +44,7 @@ async def get_version_info(check_update: bool = False):
         if 'short_hash' not in version_data:
             return JSONResponse({
                 "success": False,
-                "error": "version.txt格式错误"
+                "error": "version.txt is malformed"
             })
 
         response_data = {
@@ -90,7 +90,7 @@ async def get_version_info(check_update: bool = False):
                 else:
                     # GitHub获取失败，但不影响基本版本信息
                     response_data['check_update'] = False
-                    response_data['update_error'] = f"GitHub返回错误: {resp.status_code}"
+                    response_data['update_error'] = f"GitHub returned an error: {resp.status_code}"
 
             except Exception as e:
                 log.debug(f"检查更新失败: {e}")

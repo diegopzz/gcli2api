@@ -2,9 +2,9 @@ import { ExternalLink, Github, Info, RefreshCw, Rocket, Zap } from "lucide-react
 
 export default function About({ version, onCheckUpdate, checkingUpdate }) {
   const apiEndpoints = [
-    { label: "OpenAI 格式", value: `${window.location.origin}/v1/chat/completions` },
-    { label: "Gemini 格式", value: `${window.location.origin}/v1beta/models` },
-    { label: "Claude 格式", value: `${window.location.origin}/v1/messages` },
+    { label: "OpenAI format", value: `${window.location.origin}/v1/chat/completions` },
+    { label: "Gemini format", value: `${window.location.origin}/v1beta/models` },
+    { label: "Claude format", value: `${window.location.origin}/v1/messages` },
   ];
 
   const copyText = (text) => {
@@ -13,11 +13,11 @@ export default function About({ version, onCheckUpdate, checkingUpdate }) {
 
   return (
     <div className="space-y-6">
-      {/* API 端点 */}
+      {/* API endpoints */}
       <div className="card p-4 sm:p-6">
         <h3 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
           <Zap size={16} className="text-amber-400" />
-          API 端点（点击复制）
+          API endpoints (click to copy)
         </h3>
         <div className="space-y-2">
           {apiEndpoints.map((ep) => (
@@ -34,7 +34,7 @@ export default function About({ version, onCheckUpdate, checkingUpdate }) {
         </div>
       </div>
 
-      {/* 项目简介 */}
+      {/* Project overview */}
       <div className="card">
         <div className="flex items-center gap-3 mb-4">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-purple-600/20">
@@ -43,13 +43,13 @@ export default function About({ version, onCheckUpdate, checkingUpdate }) {
           <div>
             <h2 className="text-2xl font-bold text-white">AGY2API</h2>
             <p className="text-gray-400 text-sm">
-              {version?.version ? `版本: ${version.version}` : "Antigravity API 代理服务"}
+              {version?.version ? `Version: ${version.version}` : "Antigravity API proxy service"}
             </p>
           </div>
         </div>
         <p className="text-gray-400 text-sm leading-relaxed">
-          将 Google Antigravity API 转换为 OpenAI、Gemini 和 Anthropic
-          兼容格式的代理工具。支持多账户管理（邮箱去重）、自动轮换、模型级冷却、凭证导入导出等功能。
+          A proxy that converts the Google Antigravity API into OpenAI-, Gemini- and Anthropic-
+          compatible formats. Supports multi-account management (deduplicated by email), automatic rotation, per-model cooldowns, and credential import/export.
         </p>
         <div className="flex flex-wrap items-center gap-4 mt-4">
           <a
@@ -59,7 +59,7 @@ export default function About({ version, onCheckUpdate, checkingUpdate }) {
             className="text-purple-400 hover:text-purple-300 text-sm flex items-center gap-1.5"
           >
             <Github size={15} />
-            GitHub 仓库
+            GitHub repository
             <ExternalLink size={12} />
           </a>
           <button
@@ -72,100 +72,100 @@ export default function About({ version, onCheckUpdate, checkingUpdate }) {
             ) : (
               <RefreshCw size={14} />
             )}
-            {checkingUpdate ? "检查中..." : "检查更新"}
+            {checkingUpdate ? "Checking..." : "Check for updates"}
           </button>
           {version?.check_update && version?.has_update && (
             <span className="text-emerald-400 text-sm flex items-center gap-1.5">
               <Info size={14} />
-              有新版本可用: {version.latest_version}
+              New version available: {version.latest_version}
             </span>
           )}
           {version?.check_update && version?.has_update === false && (
             <span className="text-gray-400 text-sm flex items-center gap-1.5">
               <Info size={14} />
-              已是最新版本
+              You are on the latest version
             </span>
           )}
         </div>
       </div>
 
-      {/* 主要功能 */}
+      {/* Key features */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-blue-400 mb-4">✨ 主要功能</h3>
+        <h3 className="text-lg font-semibold text-blue-400 mb-4">✨ Key features</h3>
         <div className="grid md:grid-cols-2 gap-4 text-sm">
           <div className="space-y-3">
             <div className="text-gray-300">
               <span className="text-amber-400">⚡</span>{" "}
-              <strong>多格式兼容：</strong>OpenAI / Gemini / Anthropic 三种 API 格式
+              <strong>Multi-format: </strong>OpenAI / Gemini / Anthropic API formats
             </div>
             <div className="text-gray-300">
               <span className="text-cyan-400">🔄</span>{" "}
-              <strong>自动轮换：</strong>随机负载均衡，自动跳过冷却和禁用的凭证
+              <strong>Automatic rotation: </strong>random load balancing that skips cooling-down and disabled credentials
             </div>
             <div className="text-gray-300">
               <span className="text-emerald-400">🛡️</span>{" "}
-              <strong>自动封禁：</strong>遇到指定错误码自动禁用异常凭证
+              <strong>Auto-ban: </strong>automatically disables failing credentials on configured error codes
             </div>
             <div className="text-gray-300">
               <span className="text-purple-400">❄️</span>{" "}
-              <strong>模型级冷却：</strong>429 错误自动设置模型级 CD
+              <strong>Per-model cooldown: </strong>a 429 error sets a cooldown for that model
             </div>
           </div>
           <div className="space-y-3">
             <div className="text-gray-300">
               <span className="text-red-400">✂️</span>{" "}
-              <strong>抗截断：</strong>"抗截断-" 前缀模型自动续传截断的响应
+              <strong>Anti-truncation: </strong>models prefixed with "抗截断-" automatically continue truncated responses
             </div>
             <div className="text-gray-300">
               <span className="text-emerald-400">📊</span>{" "}
-              <strong>实时监控：</strong>凭证状态、错误码、额度查询
+              <strong>Live monitoring: </strong>credential status, error codes and quota lookup
             </div>
             <div className="text-gray-300">
               <span className="text-gray-400">📱</span>{" "}
-              <strong>响应式界面：</strong>桌面/移动端自适应
+              <strong>Responsive UI: </strong>adapts to desktop and mobile
             </div>
           </div>
         </div>
       </div>
 
-      {/* 交流群 */}
+      {/* Community group */}
       <div className="card text-center">
-        <h3 className="text-lg font-semibold text-blue-400 mb-4">💬 交流群</h3>
-        <p className="text-gray-400 text-sm mb-3">欢迎加入 QQ 群交流讨论！</p>
+        <h3 className="text-lg font-semibold text-blue-400 mb-4">💬 Community group</h3>
+        <p className="text-gray-400 text-sm mb-3">Join the upstream QQ group to discuss the project!</p>
         <div className="inline-block bg-white rounded-xl p-3">
           <img
             src="/docs/qq-group.jpg"
-            alt="QQ 群二维码"
+            alt="QQ group QR code"
             className="w-40 h-40 rounded-lg"
           />
         </div>
-        <p className="text-blue-400 font-semibold mt-3">QQ 群号：1083250744</p>
+        <p className="text-blue-400 font-semibold mt-3">QQ group number: 1083250744</p>
       </div>
 
-      {/* 使用声明 */}
+      {/* Usage notice */}
       <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-5">
-        <div className="text-amber-400 font-medium mb-2">⚠️ 使用声明</div>
+        <div className="text-amber-400 font-medium mb-2">⚠️ Usage notice</div>
         <p className="text-sm text-amber-400/80">
-          本项目仅供学习研究使用，禁止商业用途和倒卖。
+          This project is for learning and research only. Commercial use and resale are prohibited.
         </p>
       </div>
 
-      {/* 版本信息 */}
+      {/* Version info */}
       {version && (
         <div className="card">
-          <h3 className="text-base font-semibold text-gray-300 mb-3">版本信息</h3>
+          <h3 className="text-base font-semibold text-gray-300 mb-3">Version info</h3>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="text-gray-500">
-              当前版本: <span className="text-gray-300">{version.version || "-"}</span>
+              Current version: <span className="text-gray-300">{version.version || "-"}</span>
             </div>
             <div className="text-gray-500">
-              构建哈希: <span className="text-gray-300">{version.full_hash || "-"}</span>
+              Build hash: <span className="text-gray-300">{version.full_hash || "-"}</span>
             </div>
             <div className="text-gray-500">
-              更新说明: <span className="text-gray-300">{version.message || "-"}</span>
+              Release notes: <span className="text-gray-300">{version.message || "-"}</span>
             </div>
             <div className="text-gray-500">
-              构建日期: <span className="text-gray-300">{version.date || "-"}</span>
+              Build date: <span className="text-gray-300">{version.date || "-"}</span>
             </div>
           </div>
         </div>

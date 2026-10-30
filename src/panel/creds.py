@@ -60,7 +60,7 @@ async def _import_single_credential(data: Dict[str, Any]) -> Dict[str, Any]:
     try:
         refresh_token = (data.get("refresh_token") or "").strip()
         if not refresh_token:
-            return {"status": "error", "message": "缺少 refresh_token"}
+            return {"status": "error", "message": "Missing refresh_token"}
 
         email = (data.get("email") or "").strip().lower() or None
         tier = (data.get("tier") or "").strip().lower() or None
@@ -76,10 +76,10 @@ async def _import_single_credential(data: Dict[str, Any]) -> Dict[str, Any]:
         try:
             await creds.refresh()
         except Exception as e:
-            return {"status": "error", "message": f"refresh_token 无效: {str(e)[:200]}"}
+            return {"status": "error", "message": f"Invalid refresh_token: {str(e)[:200]}"}
 
         if not creds.access_token:
-            return {"status": "error", "message": "refresh_token 无效: 未获取到 access_token"}
+            return {"status": "error", "message": "Invalid refresh_token: no access_token returned"}
 
         # 自动获取缺失的 email
         if not email:
@@ -88,7 +88,7 @@ async def _import_single_credential(data: Dict[str, Any]) -> Dict[str, Any]:
             except Exception as e:
                 log.warning(f"自动获取邮箱失败: {e}")
         if not email:
-            return {"status": "error", "message": "无法获取邮箱（JSON 中未提供且自动获取失败）"}
+            return {"status": "error", "message": "Could not get the email (not in the JSON and automatic lookup failed)"}
 
         # 自动获取缺失的 project_id / tier
         if not project_id or not tier:
@@ -126,11 +126,11 @@ async def _import_single_credential(data: Dict[str, Any]) -> Dict[str, Any]:
             "status": "success",
             "email": email,
             "tier": tier,
-            "message": "导入成功",
+            "message": "Imported",
         }
 
     except Exception as e:
-        return {"status": "error", "message": f"处理失败: {str(e)[:200]}"}
+        return {"status": "error", "message": f"Processing failed: {str(e)[:200]}"}
 
 
 # =============================================================================
@@ -151,7 +151,7 @@ async def extract_json_files_from_zip(zip_file: UploadFile) -> List[dict]:
             ]
 
             if not json_files:
-                raise HTTPException(status_code=400, detail="ZIP文件中没有找到JSON文件")
+                raise HTTPException(status_code=400, detail="No JSON files found in the ZIP")
 
             log.info(f"从ZIP文件 {zip_file.filename} 中找到 {len(json_files)} 个JSON文件")
 
@@ -177,23 +177,23 @@ async def extract_json_files_from_zip(zip_file: UploadFile) -> List[dict]:
         return files_data
 
     except zipfile.BadZipFile:
-        raise HTTPException(status_code=400, detail="无效的ZIP文件格式")
+        raise HTTPException(status_code=400, detail="Invalid ZIP file")
     except Exception as e:
         if isinstance(e, HTTPException):
             raise
         log.error(f"处理ZIP文件失败: {e}")
-        raise HTTPException(status_code=500, detail=f"处理ZIP文件失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process ZIP file: {str(e)}")
 
 
 async def upload_credentials_common( files: List[UploadFile] ) -> JSONResponse:
     """批量导入凭证文件（规范 JSON：refresh_token 必填，email/tier/project_id 可选自动获取）"""
 
     if not files:
-        raise HTTPException(status_code=400, detail="请选择要上传的文件")
+        raise HTTPException(status_code=400, detail="Choose files to upload")
 
     if len(files) > 100:
         raise HTTPException(
-            status_code=400, detail=f"文件数量过多，最多支持100个文件，当前：{len(files)}个"
+            status_code=400, detail=f"Too many files: at most 100 are supported, got {len(files)}"
         )
 
     files_data = []
@@ -216,13 +216,13 @@ async def upload_credentials_common( files: List[UploadFile] ) -> JSONResponse:
                 content_str = content.decode("utf-8")
             except UnicodeDecodeError:
                 raise HTTPException(
-                    status_code=400, detail=f"文件 {file.filename} 编码格式不支持"
+                    status_code=400, detail=f"File {file.filename} has an unsupported encoding"
                 )
 
             files_data.append({"filename": file.filename, "content": content_str})
         else:
             raise HTTPException(
-                status_code=400, detail=f"文件 {file.filename} 格式不支持，只支持JSON和ZIP文件"
+                status_code=400, detail=f"File {file.filename} has an unsupported format; only JSON and ZIP are supported"
             )
 
     batch_size = 100
@@ -239,7 +239,7 @@ async def upload_credentials_common( files: List[UploadFile] ) -> JSONResponse:
                     return {
                         "filename": file_data["filename"],
                         "status": "error",
-                        "message": "JSON格式错误: 顶层必须是对象",
+                        "message": "Invalid JSON: the top level must be an object",
                     }
                 result = await _import_single_credential(data)
                 result["filename"] = file_data["filename"]
@@ -248,13 +248,13 @@ async def upload_credentials_common( files: List[UploadFile] ) -> JSONResponse:
                 return {
                     "filename": file_data["filename"],
                     "status": "error",
-                    "message": f"JSON格式错误: {str(e)}",
+                    "message": f"Invalid JSON: {str(e)}",
                 }
             except Exception as e:
                 return {
                     "filename": file_data["filename"],
                     "status": "error",
-                    "message": f"处理失败: {str(e)[:200]}",
+                    "message": f"Processing failed: {str(e)[:200]}",
                 }
 
         log.info(f"开始并发处理 {len(batch_files)} 个凭证...")
@@ -268,7 +268,7 @@ async def upload_credentials_common( files: List[UploadFile] ) -> JSONResponse:
                     {
                         "filename": "unknown",
                         "status": "error",
-                        "message": f"处理异常: {str(result)[:200]}",
+                        "message": f"Processing error: {str(result)[:200]}",
                     }
                 )
             else:
@@ -290,7 +290,7 @@ async def upload_credentials_common( files: List[UploadFile] ) -> JSONResponse:
             "uploaded_count": total_success,
             "total_count": len(files_data),
             "results": all_results,
-            "message": f"批量导入完成: 成功 {total_success}/{len(files_data)} 个凭证",
+            "message": f"Bulk import finished: {total_success}/{len(files_data)} credential(s) succeeded",
         }
     )
 
@@ -301,15 +301,15 @@ async def get_creds_status_common(
 ) -> JSONResponse:
     """获取凭证状态"""
     if offset < 0:
-        raise HTTPException(status_code=400, detail="offset 必须大于等于 0")
+        raise HTTPException(status_code=400, detail="offset must be >= 0")
     if limit not in [20, 50, 100, 200, 500, 1000]:
-        raise HTTPException(status_code=400, detail="limit 只能是 20、50、100、200、500 或 1000")
+        raise HTTPException(status_code=400, detail="limit must be 20, 50, 100, 200, 500 or 1000")
     if status_filter not in ["all", "enabled", "disabled"]:
-        raise HTTPException(status_code=400, detail="status_filter 只能是 all、enabled 或 disabled")
+        raise HTTPException(status_code=400, detail="status_filter must be all, enabled or disabled")
     if cooldown_filter and cooldown_filter not in ["all", "in_cooldown", "no_cooldown"]:
-        raise HTTPException(status_code=400, detail="cooldown_filter 只能是 all、in_cooldown 或 no_cooldown")
+        raise HTTPException(status_code=400, detail="cooldown_filter must be all, in_cooldown or no_cooldown")
     if tier_filter and tier_filter not in ["all", "free", "pro", "ultra"]:
-        raise HTTPException(status_code=400, detail="tier_filter 只能是 all、free、pro 或 ultra")
+        raise HTTPException(status_code=400, detail="tier_filter must be all, free, pro or ultra")
 
     database = await get_database()
     result = await database.get_credentials_summary(
@@ -339,7 +339,7 @@ async def download_all_creds_common() -> Response:
     emails = await database.list_credentials()
 
     if not emails:
-        raise HTTPException(status_code=404, detail="没有找到凭证")
+        raise HTTPException(status_code=404, detail="No credentials found")
 
     log.info(f"开始打包 {len(emails)} 个凭证...")
 
@@ -387,7 +387,7 @@ async def verify_credential_project_common(email: str) -> JSONResponse:
 
     credential_data = await database.get_credential(email)
     if not credential_data:
-        raise HTTPException(status_code=404, detail="凭证不存在")
+        raise HTTPException(status_code=404, detail="Credential not found")
 
     credentials = Credentials.from_dict(credential_data)
 
@@ -437,7 +437,7 @@ async def verify_credential_project_common(email: str) -> JSONResponse:
         "email": email,
         "project_id": project_id,
         "subscription_tier": subscription_tier,
-        "message": "检验成功！已解除禁用状态并清除错误码",
+        "message": "Check passed! Credential re-enabled and error codes cleared",
     })
 
 
@@ -501,23 +501,23 @@ async def creds_action(
         if action == "enable":
             result = await set_cred_disabled(email, False)
             if result:
-                return JSONResponse(content={"message": f"已启用凭证 {email}"})
-            raise HTTPException(status_code=500, detail="启用凭证失败，可能凭证不存在")
+                return JSONResponse(content={"message": f"Enabled credential {email}"})
+            raise HTTPException(status_code=500, detail="Failed to enable the credential; it may not exist")
 
         elif action == "disable":
             result = await set_cred_disabled(email, True)
             if result:
-                return JSONResponse(content={"message": f"已禁用凭证 {email}"})
-            raise HTTPException(status_code=500, detail="禁用凭证失败，可能凭证不存在")
+                return JSONResponse(content={"message": f"Disabled credential {email}"})
+            raise HTTPException(status_code=500, detail="Failed to disable the credential; it may not exist")
 
         elif action == "delete":
             success = await remove_credential(email)
             if success:
-                return JSONResponse(content={"message": f"已删除凭证 {email}"})
-            raise HTTPException(status_code=500, detail="删除凭证失败")
+                return JSONResponse(content={"message": f"Deleted credential {email}"})
+            raise HTTPException(status_code=500, detail="Failed to delete the credential")
 
         else:
-            raise HTTPException(status_code=400, detail="无效的操作类型")
+            raise HTTPException(status_code=400, detail="Invalid action")
 
     except HTTPException:
         raise
@@ -537,7 +537,7 @@ async def creds_batch_action(
         emails = request.emails
 
         if not emails:
-            raise HTTPException(status_code=400, detail="凭证列表不能为空")
+            raise HTTPException(status_code=400, detail="Credential list cannot be empty")
 
         log.info(f"对 {len(emails)} 个凭证执行批量操作 '{action}'")
 
@@ -556,19 +556,19 @@ async def creds_batch_action(
                     if await remove_credential(email):
                         success_count += 1
                     else:
-                        errors.append(f"{email}: 删除失败")
+                        errors.append(f"{email}: delete failed")
                         continue
                 else:
-                    errors.append(f"{email}: 无效的操作类型")
+                    errors.append(f"{email}: invalid action")
                     continue
             except Exception as e:
                 log.error(f"处理 {email} 时出错: {e}")
-                errors.append(f"{email}: 处理失败 - {str(e)}")
+                errors.append(f"{email}: failed - {str(e)}")
                 continue
 
-        result_message = f"批量操作完成：成功处理 {success_count}/{len(emails)} 个凭证"
+        result_message = f"Bulk action finished: {success_count}/{len(emails)} credential(s) processed"
         if errors:
-            result_message += "\n错误详情:\n" + "\n".join(errors)
+            result_message += "\nError details:\n" + "\n".join(errors)
 
         return JSONResponse(content={
             "success_count": success_count,
@@ -594,7 +594,7 @@ async def export_credential(
 
         cred = await database.get_credential(email)
         if not cred:
-            raise HTTPException(status_code=404, detail="凭证不存在")
+            raise HTTPException(status_code=404, detail="Credential not found")
 
         state = await database.get_credential_state(email)
 
@@ -644,7 +644,7 @@ async def verify_credential_project(
         raise
     except Exception as e:
         log.error(f"检验凭证失败 {email}: {e}")
-        raise HTTPException(status_code=500, detail=f"检验失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Check failed: {str(e)}")
 
 
 @router.get("/errors/{email}")
@@ -674,7 +674,7 @@ async def get_credential_quota(
 
         credential_data = await database.get_credential(email)
         if not credential_data:
-            raise HTTPException(status_code=404, detail="凭证不存在")
+            raise HTTPException(status_code=404, detail="Credential not found")
 
         creds = Credentials.from_dict(credential_data)
 
@@ -688,7 +688,7 @@ async def get_credential_quota(
 
         access_token = credential_data.get("access_token") or credential_data.get("token")
         if not access_token:
-            raise HTTPException(status_code=400, detail="凭证中没有访问令牌")
+            raise HTTPException(status_code=400, detail="Credential has no access token")
 
         quota_info = await fetch_quota_info(access_token, credential_data.get("project_id", ""))
 
@@ -708,7 +708,7 @@ async def get_credential_quota(
                 content={
                     "success": False,
                     "email": email,
-                    "error": quota_info.get("error", "未知错误")
+                    "error": quota_info.get("error", "Unknown error")
                 }
             )
 
@@ -716,7 +716,7 @@ async def get_credential_quota(
         raise
     except Exception as e:
         log.error(f"获取凭证额度失败 {email}: {e}")
-        raise HTTPException(status_code=500, detail=f"获取额度失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get quota: {str(e)}")
 
 
 @router.post("/test/{email}")
@@ -737,7 +737,7 @@ async def test_credential(
 
         credential_data = await database.get_credential(email)
         if not credential_data:
-            raise HTTPException(status_code=404, detail="凭证不存在")
+            raise HTTPException(status_code=404, detail="Credential not found")
 
         credentials = Credentials.from_dict(credential_data)
         token_refreshed = await credentials.refresh_if_needed()
@@ -749,13 +749,13 @@ async def test_credential(
 
         access_token = credential_data.get("access_token") or credential_data.get("token")
         if not access_token:
-            raise HTTPException(status_code=400, detail="凭证中没有访问令牌")
+            raise HTTPException(status_code=400, detail="Credential has no access token")
 
         from src.httpx_client import post_async
 
         project_id = credential_data.get("project_id", "")
         if not project_id:
-            raise HTTPException(status_code=400, detail="凭证中没有项目ID")
+            raise HTTPException(status_code=400, detail="Credential has no project ID")
 
         test_model = "gemini-2.5-flash-lite"
 
@@ -790,7 +790,7 @@ async def test_credential(
                 content={
                     "success": True,
                     "status_code": status_code,
-                    "message": "测试成功",
+                    "message": "Test passed",
                     "email": email
                 }
             )
@@ -815,7 +815,7 @@ async def test_credential(
             content={
                 "success": False,
                 "status_code": status_code,
-                "message": f"测试失败: HTTP {status_code}",
+                "message": f"Test failed: HTTP {status_code}",
                 "error": error_text,
                 "email": email
             }
@@ -825,4 +825,4 @@ async def test_credential(
         raise
     except Exception as e:
         log.error(f"测试凭证失败 {email}: {e}")
-        raise HTTPException(status_code=500, detail=f"测试失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Test failed: {str(e)}")

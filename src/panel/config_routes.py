@@ -113,20 +113,20 @@ async def save_config(request: ConfigSaveRequest, token: str = Depends(verify_pa
                 not isinstance(new_config["retry_429_max_retries"], int)
                 or new_config["retry_429_max_retries"] < 0
             ):
-                raise HTTPException(status_code=400, detail="最大429重试次数必须是大于等于0的整数")
+                raise HTTPException(status_code=400, detail="Max retries must be an integer >= 0")
 
         if "retry_429_enabled" in new_config:
             if not isinstance(new_config["retry_429_enabled"], bool):
-                raise HTTPException(status_code=400, detail="429重试开关必须是布尔值")
+                raise HTTPException(status_code=400, detail="Retry toggle must be a boolean")
 
         # 验证新的配置项
         if "retry_429_interval" in new_config:
             try:
                 interval = float(new_config["retry_429_interval"])
                 if interval < 0 or interval > 3600:
-                    raise HTTPException(status_code=400, detail="429重试间隔必须在0-3600秒之间")
+                    raise HTTPException(status_code=400, detail="Retry interval must be between 0 and 3600 seconds")
             except (ValueError, TypeError):
-                raise HTTPException(status_code=400, detail="429重试间隔必须是有效的数字")
+                raise HTTPException(status_code=400, detail="Retry interval must be a valid number")
 
         if "anti_truncation_max_attempts" in new_config:
             if (
@@ -135,107 +135,107 @@ async def save_config(request: ConfigSaveRequest, token: str = Depends(verify_pa
                 or new_config["anti_truncation_max_attempts"] > 10
             ):
                 raise HTTPException(
-                    status_code=400, detail="抗截断最大重试次数必须是1-10之间的整数"
+                    status_code=400, detail="Anti-truncation max attempts must be an integer between 1 and 10"
                 )
 
         if "return_thoughts_to_frontend" in new_config:
             if not isinstance(new_config["return_thoughts_to_frontend"], bool):
-                raise HTTPException(status_code=400, detail="思维链返回开关必须是布尔值")
+                raise HTTPException(status_code=400, detail="Return-reasoning toggle must be a boolean")
 
         # 验证敏感词过滤配置
         if "sensitive_words_enabled" in new_config:
             if not isinstance(new_config["sensitive_words_enabled"], bool):
-                raise HTTPException(status_code=400, detail="敏感词过滤开关必须是布尔值")
+                raise HTTPException(status_code=400, detail="Sensitive word filter toggle must be a boolean")
 
         if "sensitive_words" in new_config:
             words = new_config["sensitive_words"]
             if not isinstance(words, list):
-                raise HTTPException(status_code=400, detail="敏感词列表必须是数组（每行一个词）")
+                raise HTTPException(status_code=400, detail="Sensitive words must be an array (one word per line)")
             import re as _re
 
             cleaned_words = []
             for word in words:
                 if not isinstance(word, str):
-                    raise HTTPException(status_code=400, detail=f"敏感词必须是字符串: {word!r}")
+                    raise HTTPException(status_code=400, detail=f"Sensitive word must be a string: {word!r}")
                 word = word.strip()
                 if not word:
                     continue
                 try:
                     _re.compile(_re.escape(word), _re.IGNORECASE | _re.UNICODE)
                 except _re.error:
-                    raise HTTPException(status_code=400, detail=f"无效的敏感词: {word!r}")
+                    raise HTTPException(status_code=400, detail=f"Invalid sensitive word: {word!r}")
                 cleaned_words.append(word)
             new_config["sensitive_words"] = cleaned_words
 
         # 验证 IP 白名单配置（每行一条，支持单 IP / CIDR / 起止范围，IPv4 / IPv6）
         if "ip_whitelist_enabled" in new_config:
             if not isinstance(new_config["ip_whitelist_enabled"], bool):
-                raise HTTPException(status_code=400, detail="IP 白名单开关必须是布尔值")
+                raise HTTPException(status_code=400, detail="IP allowlist toggle must be a boolean")
 
         if "ip_whitelist" in new_config:
             entries = new_config["ip_whitelist"]
             if not isinstance(entries, list):
-                raise HTTPException(status_code=400, detail="IP 白名单必须是数组（每行一条）")
+                raise HTTPException(status_code=400, detail="IP allowlist must be an array (one entry per line)")
             cleaned_entries = []
             for entry in entries:
                 if not isinstance(entry, str):
-                    raise HTTPException(status_code=400, detail=f"IP 白名单条目必须是字符串: {entry!r}")
+                    raise HTTPException(status_code=400, detail=f"IP allowlist entry must be a string: {entry!r}")
                 entry = entry.strip()
                 if not entry:
                     continue
                 try:
                     config.parse_ip_whitelist_line(entry)
                 except ValueError:
-                    raise HTTPException(status_code=400, detail=f"无效的 IP 白名单条目: {entry!r}")
+                    raise HTTPException(status_code=400, detail=f"Invalid IP allowlist entry: {entry!r}")
                 cleaned_entries.append(entry)
             new_config["ip_whitelist"] = cleaned_entries
 
         # 验证模型名复写配置（每条规则 [pattern, replacement]，pattern 支持正则）
         if "model_rewrite_enabled" in new_config:
             if not isinstance(new_config["model_rewrite_enabled"], bool):
-                raise HTTPException(status_code=400, detail="模型名复写开关必须是布尔值")
+                raise HTTPException(status_code=400, detail="Model rewriting toggle must be a boolean")
 
         if "model_rewrite_rules" in new_config:
             import re as _re_rw
 
             rules = new_config["model_rewrite_rules"]
             if not isinstance(rules, list):
-                raise HTTPException(status_code=400, detail="模型名复写规则必须是数组（每条 [匹配正则, 替换模型名]）")
+                raise HTTPException(status_code=400, detail="Model rewrite rules must be an array (each [match regex, replacement model])")
             cleaned_rules = []
             for rule in rules:
                 if not (isinstance(rule, (list, tuple)) and len(rule) == 2 and all(isinstance(x, str) for x in rule)):
                     raise HTTPException(
                         status_code=400,
-                        detail=f"每条规则必须是 [匹配正则, 替换模型名] 的字符串二元组: {rule!r}",
+                        detail=f"Each rule must be a pair of strings [match regex, replacement model]: {rule!r}",
                     )
                 pattern, replacement = rule[0].strip(), rule[1].strip()
                 if not pattern or not replacement:
-                    raise HTTPException(status_code=400, detail=f"规则的正则和替换模型名均不能为空: {rule!r}")
+                    raise HTTPException(status_code=400, detail=f"A rule's regex and replacement model cannot be empty: {rule!r}")
                 try:
                     _re_rw.compile(pattern)
                 except _re_rw.error:
-                    raise HTTPException(status_code=400, detail=f"无效的正则表达式: {pattern!r}")
+                    raise HTTPException(status_code=400, detail=f"Invalid regular expression: {pattern!r}")
                 cleaned_rules.append([pattern, replacement])
             new_config["model_rewrite_rules"] = cleaned_rules
 
         # 验证请求日志配置
         if "usage_log_enabled" in new_config:
             if not isinstance(new_config["usage_log_enabled"], bool):
-                raise HTTPException(status_code=400, detail="请求日志开关必须是布尔值")
+                raise HTTPException(status_code=400, detail="Request log toggle must be a boolean")
 
         # 验证请求体详细日志配置
         if "request_log_enabled" in new_config:
             if not isinstance(new_config["request_log_enabled"], bool):
-                raise HTTPException(status_code=400, detail="请求体详细日志开关必须是布尔值")
+                raise HTTPException(status_code=400, detail="Detailed request body log toggle must be a boolean")
 
         if "request_log_error_codes" in new_config:
             codes = new_config["request_log_error_codes"]
             if not isinstance(codes, list):
-                raise HTTPException(status_code=400, detail="详细日志错误码必须是数组，如 [400, 429]")
+                raise HTTPException(status_code=400, detail="Detailed log error codes must be an array, e.g. [400, 429]")
             cleaned_codes = []
             for code in codes:
                 if isinstance(code, bool) or not isinstance(code, int) or code < 100 or code > 599:
-                    raise HTTPException(status_code=400, detail=f"错误码必须是 100-599 的整数: {code!r}")
+                    raise HTTPException(status_code=400, detail=f"Error code must be an integer from 100 to 599: {code!r}")
                 if code not in cleaned_codes:
                     cleaned_codes.append(code)
             new_config["request_log_error_codes"] = sorted(cleaned_codes)
@@ -244,12 +244,12 @@ async def save_config(request: ConfigSaveRequest, token: str = Depends(verify_pa
         if "credential_select_mode" in new_config:
             mode = new_config["credential_select_mode"]
             if mode not in ("random", "cache", "sticky"):
-                raise HTTPException(status_code=400, detail="凭证选择模式必须是 random / cache / sticky")
+                raise HTTPException(status_code=400, detail="Credential selection mode must be random / cache / sticky")
 
         # 验证服务器配置
         if "host" in new_config:
             if not isinstance(new_config["host"], str) or not new_config["host"].strip():
-                raise HTTPException(status_code=400, detail="服务器主机地址不能为空")
+                raise HTTPException(status_code=400, detail="Server host cannot be empty")
 
         if "port" in new_config:
             if (
@@ -257,15 +257,15 @@ async def save_config(request: ConfigSaveRequest, token: str = Depends(verify_pa
                 or new_config["port"] < 1
                 or new_config["port"] > 65535
             ):
-                raise HTTPException(status_code=400, detail="端口号必须是1-65535之间的整数")
+                raise HTTPException(status_code=400, detail="Port must be an integer between 1 and 65535")
 
         if "api_password" in new_config:
             if not isinstance(new_config["api_password"], str):
-                raise HTTPException(status_code=400, detail="API访问密码必须是字符串")
+                raise HTTPException(status_code=400, detail="API password must be a string")
 
         if "panel_password" in new_config:
             if not isinstance(new_config["panel_password"], str):
-                raise HTTPException(status_code=400, detail="控制面板密码必须是字符串")
+                raise HTTPException(status_code=400, detail="Control panel password must be a string")
 
         # 获取环境变量锁定的配置键
         env_locked_keys = get_env_locked_keys()
@@ -289,7 +289,7 @@ async def save_config(request: ConfigSaveRequest, token: str = Depends(verify_pa
 
         # 构建响应消息
         response_data = {
-            "message": "配置保存成功",
+            "message": "Settings saved",
             "saved_config": {k: v for k, v in new_config.items() if k not in env_locked_keys},
         }
 

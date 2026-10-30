@@ -39,9 +39,9 @@ async def get_usage_logs(
     """分页查询请求日志（新 -> 旧）"""
     try:
         if limit < 1 or limit > 1000:
-            raise HTTPException(status_code=400, detail="limit 必须在 1-1000 之间")
+            raise HTTPException(status_code=400, detail="limit must be between 1 and 1000")
         if offset < 0:
-            raise HTTPException(status_code=400, detail="offset 不能为负数")
+            raise HTTPException(status_code=400, detail="offset cannot be negative")
 
         database = await get_database()
         items, total = await database.query_usage_logs(
@@ -97,13 +97,13 @@ async def clear_logs(
     """清理 N 天前的日志，返回删除条数"""
     try:
         if days < 0:
-            raise HTTPException(status_code=400, detail="天数不能为负数")
+            raise HTTPException(status_code=400, detail="days cannot be negative")
         if days == 0:
             # 0 = 删除所有（cutoff = now），同步清空请求体详细日志文件
             deleted = await clear_usage_logs(0)
             files_deleted = await asyncio.to_thread(clear_request_body_logs)
             return JSONResponse(content={
-                "message": "已清理全部日志",
+                "message": "All logs cleaned up",
                 "deleted": deleted,
                 "files_deleted": files_deleted,
             })
@@ -113,7 +113,7 @@ async def clear_logs(
             clear_request_body_logs, time.time() - days * 86400
         )
         return JSONResponse(content={
-            "message": f"已清理 {days} 天前的日志",
+            "message": f"Deleted logs older than {days} days",
             "deleted": deleted,
             "files_deleted": files_deleted,
         })
@@ -148,7 +148,7 @@ async def truncate_logs(token: str = Depends(verify_panel_token)):
         files_deleted = await asyncio.to_thread(clear_request_body_logs)
 
         return JSONResponse(content={
-            "message": "已清空全部日志（表已重建）",
+            "message": "All logs cleared (table recreated)",
             "deleted": total,
             "files_deleted": files_deleted,
         })
@@ -166,7 +166,7 @@ async def get_request_body_log(
     try:
         data = await asyncio.to_thread(read_request_body_log, path)
         if data is None:
-            raise HTTPException(status_code=404, detail="详细日志文件不存在或已清理")
+            raise HTTPException(status_code=404, detail="Detailed log file does not exist or was cleaned up")
         return JSONResponse(content=data)
     except HTTPException:
         raise

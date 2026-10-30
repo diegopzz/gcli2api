@@ -39,11 +39,11 @@ async def serve_control_panel():
     except FileNotFoundError:
         raise HTTPException(
             status_code=500,
-            detail="前端资源未构建，请先运行 frontend 目录下的 npm run build",
+            detail="Frontend is not built. Run npm run build in the frontend directory first",
         )
     except Exception as e:
         log.error(f"加载控制面板页面失败: {e}")
-        raise HTTPException(status_code=500, detail="服务器内部错误")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/assets/{file_path:path}")

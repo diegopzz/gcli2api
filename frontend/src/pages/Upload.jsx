@@ -39,7 +39,7 @@ export default function UploadPage() {
       setResults(res.data);
     } catch (err) {
       setResults({
-        error: err.response?.data?.detail || "上传失败",
+        error: err.response?.data?.detail || "Upload failed",
       });
     } finally {
       setUploading(false);
@@ -52,23 +52,23 @@ export default function UploadPage() {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-800/10 border border-emerald-700/30 rounded-xl p-5">
-        <h3 className="text-lg font-semibold text-emerald-400 mb-2">批量导入凭证</h3>
+        <h3 className="text-lg font-semibold text-emerald-400 mb-2">Bulk import credentials</h3>
         <p className="text-sm text-gray-400">
-          支持批量导入 Antigravity 凭证（.json 或包含 JSON 文件的 .zip）。
+          Import Antigravity credentials in bulk (.json files, or a .zip containing JSON files).
         </p>
         <div className="mt-3 text-xs text-gray-500 bg-dark-800/60 rounded-lg p-3">
-          <p className="mb-1 font-medium text-gray-400">规范 JSON 格式：</p>
+          <p className="mb-1 font-medium text-gray-400">Expected JSON format:</p>
           <pre className="text-emerald-300/80 whitespace-pre-wrap font-mono">{`{
-  "refresh_token": "必填",
-  "email": "可选，缺失自动获取",
-  "tier": "可选，缺失自动获取",
-  "project_id": "可选，缺失自动获取"
+  "refresh_token": "required",
+  "email": "optional, fetched automatically if missing",
+  "tier": "optional, fetched automatically if missing",
+  "project_id": "optional, fetched automatically if missing"
 }`}</pre>
-          <p className="mt-2">refresh_token 无效的凭证将导入失败；同邮箱凭证自动去重（覆盖更新）。</p>
+          <p className="mt-2">Credentials with an invalid refresh_token fail to import; credentials with the same email are deduplicated (the newer one overwrites).</p>
         </div>
       </div>
 
-      {/* 上传区域 */}
+      {/* Upload area */}
       <div
         className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${
           dragOver
@@ -88,8 +88,8 @@ export default function UploadPage() {
         }}
       >
         <Upload className="mx-auto text-purple-400 mb-3" size={32} />
-        <p className="text-gray-300">点击选择文件或拖拽文件到此区域</p>
-        <p className="text-gray-500 text-sm mt-1">支持 .json 和 .zip 格式，ZIP 会自动提取其中的 JSON 凭证</p>
+        <p className="text-gray-300">Click to choose files, or drag and drop them here</p>
+        <p className="text-gray-500 text-sm mt-1">Accepts .json and .zip; JSON credentials inside a ZIP are extracted automatically</p>
         <input
           ref={inputRef}
           type="file"
@@ -103,12 +103,12 @@ export default function UploadPage() {
         />
       </div>
 
-      {/* 文件列表 */}
+      {/* File list */}
       {files.length > 0 && (
         <div className="card space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-medium text-gray-300">
-              已选择 {files.length} 个文件
+              {files.length} file(s) selected
             </h4>
             <div className="flex gap-2">
               <button
@@ -121,14 +121,14 @@ export default function UploadPage() {
                 ) : (
                   <Upload size={14} />
                 )}
-                {uploading ? "上传中..." : "上传文件"}
+                {uploading ? "Uploading..." : "Upload files"}
               </button>
               <button
                 onClick={() => setFiles([])}
                 disabled={uploading}
                 className="btn btn-secondary text-sm"
               >
-                清空列表
+                Clear list
               </button>
             </div>
           </div>
@@ -159,7 +159,7 @@ export default function UploadPage() {
         </div>
       )}
 
-      {/* 上传结果 */}
+      {/* Upload results */}
       {results && (
         <div className="card space-y-3">
           {results.error ? (
@@ -171,11 +171,11 @@ export default function UploadPage() {
               <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg flex items-center gap-2">
                 <CheckCircle size={16} />
                 {results.message ||
-                  `上传完成: 成功 ${successCount}/${totalCount} 个文件`}
+                  `Upload finished: ${successCount}/${totalCount} file(s) succeeded`}
               </div>
               {results.results?.some((r) => r.status === "error") && (
                 <div className="space-y-1.5">
-                  <div className="text-sm text-gray-400">失败详情:</div>
+                  <div className="text-sm text-gray-400">Failure details:</div>
                   {results.results
                     .filter((r) => r.status === "error")
                     .map((r, i) => (

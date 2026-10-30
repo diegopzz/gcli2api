@@ -2,8 +2,8 @@ import { Check, ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 /**
- * 自定义下拉选择器：选项面板由自身渲染（非原生 select 弹窗），
- * 面板与触发器左右边缘完全对齐；空间不足时自动向上弹出。
+ * Custom dropdown: the options panel is rendered by the component (not the native select popup),
+ * aligned edge-to-edge with the trigger; opens upward when there is not enough space below.
  */
 export default function Select({ value, onChange, options, className = "", disabled = false }) {
   const [open, setOpen] = useState(false);
@@ -34,7 +34,7 @@ export default function Select({ value, onChange, options, className = "", disab
       const rect = rootRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
-      // 面板高度按选项数量估算（每项约 40px，含内边距），上限 240px
+      // Estimate panel height from option count (~40px each incl. padding), capped at 240px
       const desired = Math.min(options.length * 40 + 10, 240);
       if (spaceBelow >= desired || spaceBelow >= spaceAbove) {
         setPlacement({ dropUp: false, maxHeight: Math.min(spaceBelow - 8, desired) });
